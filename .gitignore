@@ -130,6 +130,10 @@ dist
 
 .docusaurus
 
+# Retype generated docs
+docs/.retype/
+docs/retype.manifest
+
 # Serverless directories
 
 .serverless/

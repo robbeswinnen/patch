@@ -1,0 +1,31 @@
+name: Publish Patch docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/retype-docs.yml"
+
+jobs:
+  publish:
+    name: Publish to retype branch
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: retypeapp/action-build@latest
+        with:
+          config_path: docs/retype.yml
+
+      - uses: retypeapp/action-github-pages@latest
+        with:
+          update-branch: true

@@ -1,0 +1,57 @@
+input: .
+output: .retype
+
+# Required by Retype. Replace this with your GitHub Pages URL before publishing.
+url: robbeswinnen.github.io/patch/
+
+branding:
+  title: Patch
+  label: Bot Docs
+  logo: static/patch-logo.svg
+  logoDark: static/patch-logo-dark.svg
+  logoWidth: 34
+  logoHeight: 34
+
+links:
+  - text: Start
+    link: getting-started.md
+    icon: rocket
+  - text: Commands
+    link: commands/
+    icon: terminal
+  - text: Status Tags
+    link: features/profile-status.md
+    icon: shield-check
+  - text: Support
+    link: https://discord.gg/QW7CZczhT4
+    icon: comment-discussion
+    target: blank
+    title: Open the Patch support server
+
+footer:
+  copyright: "&copy; {{ year }} Patch. Clean player reads, tiny useful buttons."
+  links:
+    - text: Support Server
+      link: https://discord.gg/QW7CZczhT4
+      title: Ask for help, tags, or appeals
+    - text: Hosting Guide
+      link: hosting-github-pages.md
+      title: Publish these docs for free
+
+search:
+  preload: true
+  hotkeys:
+    - "/"
+    - "k"
+  maxResults: 24
+  minChars: 2
+  placeholder: Search Patch docs
+  noResultsFoundMsg: Try a command name like stats, profile, track, or report.
+
+generator:
+  directoryIndex:
+    append: true
+
+outbound:
+  target: blank
+  icon: link-external

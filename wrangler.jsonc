@@ -13,6 +13,27 @@
 	"upload_source_maps": true,
 	"compatibility_flags": [
 		"nodejs_compat"
+	],
+	"vars": {
+		"DEVELOPER_DISCORD_USER_ID": "918552644174348328",
+		"SUPPORT_REPORT_CHANNEL_ID": "1496900654210482228"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "USER_PREFERENCES",
+			"id": "f5a530cf25f94e49b6635d0e4ba07fe4",
+			"remote": true
+		}
+	],
+	"triggers": {
+		"crons": ["0 * * * *"]
+	},
+	"rules": [
+		{
+			"type": "Data",
+			"globs": ["**/*.ttf"],
+			"fallthrough": true
+		}
 	]
 	/**
 	 * Smart Placement

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://robbeswinnen.github.io/patch/sitemap.xml

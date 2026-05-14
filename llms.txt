@@ -1,0 +1,19 @@
+﻿# Patch, explained gently
+
+- [Patch, explained gently](https://robbeswinnen.github.io/patch/index.md): A friendly guide to what Patch can do in Discord.
+- [Getting started](https://robbeswinnen.github.io/patch/getting-started.md): Your first few minutes with Patch.
+
+## Commands
+
+- [Commands](https://robbeswinnen.github.io/patch/commands/index.md): Every Patch command in one friendly shelf.
+- [Player tools](https://robbeswinnen.github.io/patch/commands/player-tools.md): Profile cards, stats, comparisons, clans, and weekly tracking.
+- [Community tools](https://robbeswinnen.github.io/patch/commands/community-tools.md): Help, tags, reports, and the staff-only toolbox.
+
+## Features
+
+- [Features](https://robbeswinnen.github.io/patch/features/index.md): Deeper guides for Patch status, reports, and tracking.
+- [Profile status](https://robbeswinnen.github.io/patch/features/profile-status.md): How Secure, Community report, and curated tags work.
+- [Reports and staff review](https://robbeswinnen.github.io/patch/features/reports-and-staff.md): How reports move from proof to staff decision.
+- [Weekly tracking](https://robbeswinnen.github.io/patch/features/weekly-tracking.md): How Patch watches ranked changes and sends private recaps.
+- [FAQ](https://robbeswinnen.github.io/patch/faq.md): Short answers for common Patch questions.
+- [Host the docs for free](https://robbeswinnen.github.io/patch/hosting-github-pages.md): Publish the Retype docs for free with GitHub Pages and no domain.

@@ -138,7 +138,6 @@ async function runBanWatcher(env, now = /* @__PURE__ */ new Date()) {
 				for (const dup of report.duplicateReports) {
 					try {
 						const dupConfirmedPending = await markPendingReportBanConfirmed(env, dup.reportId, confirmedAt);
-						await recordReportBanConfirmed(env, dup.reporterId, confirmedAt);
 						const dupPlayerReport = {
 							...detectedReport,
 							reporterId: dup.reporterId,

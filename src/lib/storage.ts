@@ -595,6 +595,17 @@ async function recordReportAccepted(env, userId, acceptedAt = /* @__PURE__ */ ne
 	});
 }
 
+async function recordAutomaticallyAcceptedReport(env, userId, acceptedAt = /* @__PURE__ */ new Date().toISOString()) {
+	const existing = await getReporterReputation(env, userId);
+	return putReporterReputation(env, {
+		...existing,
+		submittedReports: existing.submittedReports + 1,
+		acceptedReports: existing.acceptedReports + 1,
+		lastReportAt: acceptedAt,
+		lastAcceptedAt: acceptedAt,
+	});
+}
+
 async function recordReportRejected(env, userId, rejectedAt = /* @__PURE__ */ new Date().toISOString()) {
 	const existing = await getReporterReputation(env, userId);
 	return updateReporterReputation(env, userId, {
@@ -678,6 +689,7 @@ export {
 	putReportBlacklistEntry,
 	putReportCooldown,
 	putTracker,
+	recordAutomaticallyAcceptedReport,
 	recordReportAccepted,
 	recordReportBanConfirmed,
 	recordReportSubmitted,

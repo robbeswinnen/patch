@@ -6,7 +6,7 @@ The deployed runtime logic and all custom image assets were recovered from Cloud
 
 ## Start here
 
-Use Node.js 20 or newer and pnpm. From this folder:
+Use Node.js 22 or newer and pnpm. From this folder:
 
 ```sh
 corepack enable
@@ -54,11 +54,11 @@ wrangler.jsonc          Cloudflare Worker, KV, cron, and asset configuration
 
 ## Before deploying
 
-Read [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md). In particular, report-review authorization, KV counter races, slow tracking interactions, and the amount of hourly cron work should be addressed before expanding usage.
+Read [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md). In particular, the remaining KV counter races, slow tracking interactions, and the amount of hourly cron work should be addressed before expanding usage.
 
 For the exact keep/change/add decision for every Cloudflare binding, read [docs/CLOUDFLARE_VARIABLES.md](docs/CLOUDFLARE_VARIABLES.md). Existing encrypted Discord values do not need to change for a website update.
 
-The old hard-coded Discord invite now points to an unrelated server. The new website safely falls back to the project documentation, while the bot retains its deployed fallback for strict behavior parity. Set a current dashboard `SUPPORT_SERVER_URL` before deployment. Also verify the dashboard developer IDs and report-channel ID, plus the KV namespace in `wrangler.jsonc`, belong to the intended bot.
+The production support invite and canonical Worker URL are declared as non-secret values in `wrangler.jsonc`. Update `SUPPORT_SERVER_URL` there if the permanent invite changes. Also verify the dashboard developer IDs and report-channel ID, plus the KV namespace in `wrangler.jsonc`, belong to the intended bot.
 
 For the existing Worker, authenticate Wrangler and deploy without touching its encrypted rows:
 

@@ -67,8 +67,7 @@ import {
 	putAcceptedReport,
 	putPendingReport,
 	putReportCooldown,
-	recordReportAccepted,
-	recordReportSubmitted,
+	recordAutomaticallyAcceptedReport,
 	rejectReport,
 	reporterTierLabel,
 	suspiciousPatternForReport,
@@ -248,6 +247,15 @@ function reportStatusLabel(status) {
 	return 'Pending review';
 }
 
+function reportReviewChannelAllowed(interaction, env) {
+	const supportReportChannelId = env.SUPPORT_REPORT_CHANNEL_ID?.trim();
+	return Boolean(supportReportChannelId && interaction.channel_id === supportReportChannelId);
+}
+
+function reportReviewChannelDeniedResponse() {
+	return interactionResponse(simpleErrorMessage('Review unavailable', 'Report reviews only work in the configured staff channel.'));
+}
+
 function reportReviewMessage(report, options = {}) {
 	const rankedStats = options.profile ? latestSeason(options.profile)?.ranked : undefined;
 	const lastOnline = options.profile ? formatLastOnline(options.profile) : undefined;
@@ -322,6 +330,9 @@ function reportReviewMessage(report, options = {}) {
 }
 
 async function handleReportReview(interaction, env) {
+	if (!reportReviewChannelAllowed(interaction, env)) {
+		return reportReviewChannelDeniedResponse();
+	}
 	const customIdValue = interaction.data?.custom_id || '';
 	const reportId = customIdValue.replace(/^report_(accept|reject):/, '');
 	try {
@@ -344,6 +355,9 @@ async function handleReportReview(interaction, env) {
 }
 
 async function handleReportReviewModal(interaction, env, runtime) {
+	if (!reportReviewChannelAllowed(interaction, env)) {
+		return reportReviewChannelDeniedResponse();
+	}
 	const customIdValue = interaction.data?.custom_id || '';
 	const [, action, reportId] = customIdValue.match(/^report_review:(accept|reject):(.+)$/) || [];
 	const reviewerId = interactionUserId(interaction) || 'unknown';
@@ -456,15 +470,13 @@ async function editReportSubmitResponse(interaction, env, draft, reason, details
 					submittedAt: now,
 				});
 			}
+			const reporterReputation2 = await recordAutomaticallyAcceptedReport(env, draft.reporterId, now);
 			await Promise.all([
 				putPendingReport(env, report2),
 				putAcceptedReport(env, existingAccepted),
-				recordReportSubmitted(env, draft.reporterId, now),
-				recordReportAccepted(env, draft.reporterId, now),
 				putReportCooldown(env, draft.reporterId, REPORT_COOLDOWN_SECONDS),
 				deleteReportDraft(env, draft.id),
 			]);
-			const reporterReputation2 = await getReporterReputation(env, draft.reporterId);
 			await editOriginalInteractionResponse(
 				env,
 				interaction.token,

@@ -16,7 +16,7 @@ The archive did not include the original `index.js.map`. Cloudflare stores uploa
 
 ## Deliberate changes from version 115
 
-The website is the only intentional runtime change. It uses the public Patch documentation as a safe fallback because the deployed Discord invite is stale. Bot responses retain the deployed fallback for behavior parity. Configure `SUPPORT_SERVER_URL` with the intended server before deployment.
+The website is the primary intentional runtime redesign. It validates configured links and falls back to the public project repository. The release also adds narrow safety fixes for staff-channel report reviews, duplicate reputation accounting, bounded interaction bodies, and support-link propagation into profile cards. The intended permanent support invite is configured as `SUPPORT_SERVER_URL` in `wrangler.jsonc`.
 
 The project also adds current tests, examples, generated bindings, documentation, formatting, and package scripts. After the initial recovery, the homepage was deliberately redesigned using the user's Pijon site as its visual reference. Its runtime adapter is now split from typed `src/site/` source; binary art is served through cacheable Worker routes, configured URLs reject unsafe schemes, and the page sends a restrictive Content Security Policy. The Discord interaction behavior remains the recovered implementation. Known behavioral and scaling problems are recorded separately in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 

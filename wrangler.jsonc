@@ -12,10 +12,14 @@
 		"enabled": true,
 	},
 	"upload_source_maps": true,
-	// Preserve dashboard-managed variables and secrets during the first recovery deploy.
+	// Preserve dashboard-managed staff configuration and encrypted secrets.
 	"keep_vars": true,
 	"compatibility_flags": ["nodejs_compat"],
-	// Dashboard-only variables are preserved by keep_vars; see docs/CLOUDFLARE_VARIABLES.md.
+	"vars": {
+		"SUPPORT_SERVER_URL": "https://discord.gg/QW7CZczhT4",
+		"WEBSITE_URL": "https://discord-bot.robbeswinnen.workers.dev",
+	},
+	// Staff IDs remain dashboard-managed; see docs/CLOUDFLARE_VARIABLES.md.
 	"kv_namespaces": [
 		{
 			"binding": "USER_PREFERENCES",

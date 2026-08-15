@@ -279,7 +279,7 @@ export function homepageHtml(request: Request, env: Env): string {
         <div class='footer-brand'><strong>patch</strong><p>Community-built Critical Ops player tools, available where players already talk.</p></div>
         <div class='footer-group'><strong>Explore</strong><a href='#features'>Features</a><a href='#commands'>Commands</a><a href='#trust'>Community reports</a></div>
         <div class='footer-group'><strong>Get Patch</strong><a href='${addPatch}'>Add to Discord</a><a href='${support}'>Support server</a></div>
-        <div class='footer-group'><strong>Project</strong><a href='${docs}'>Documentation</a><a href='/robots.txt'>Robots</a></div>
+        <div class='footer-group'><strong>Project</strong><a href='${docs}'>Source &amp; docs</a><a href='/robots.txt'>Robots</a></div>
       </div>
       <div class='footer-bottom'><span>© <span data-current-year>2026</span> Patch.</span><span>Community project; not affiliated with Critical Force. Critical Ops artwork is used for game context.</span></div>
     </footer>

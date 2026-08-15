@@ -1,16 +1,18 @@
 # Known issues before wider use
 
-This file separates recovery fidelity from future engineering work. The items below existed in the deployed behavior and were intentionally left visible rather than silently redesigned.
+This file separates the launch hardening completed during recovery from longer-term engineering work.
 
-## Fix before trusting moderation actions
+## Release hardening completed
 
-The report accept/reject component and modal handlers do not independently verify a reviewer role, allow-list, guild, or the configured review channel. Their authorization currently depends on who can see and operate the Discord message. Add an explicit server-side authorization check before calling `acceptReport` or `rejectReport`.
+Report accept/reject buttons and modal submissions now fail closed unless the interaction occurs in the configured `SUPPORT_REPORT_CHANNEL_ID`. Discord channel permissions remain the staff access boundary; review actions in child threads are intentionally rejected.
 
-Several reputation, cooldown, moderation, and lookup counters use KV read-modify-write operations. Cloudflare KV is not a transactional counter store, so concurrent writes to one key can overwrite each other. One concrete case is an automatically accepted duplicate report: `recordReportSubmitted` and `recordReportAccepted` update the same reputation key concurrently inside `Promise.all`. Serialize that update or move mutable counters to a transactional store such as a Durable Object or D1.
+Automatically accepted duplicate reports now record the submitted and accepted reputation increments in one read-modify-write instead of racing two writes to the same key.
 
-The ban watcher can credit a duplicate reporter twice. `markPendingReportBanConfirmed` already increments the pending report's reporter, after which `runBanWatcher` calls `recordReportBanConfirmed` for that same duplicate reporter again. Remove the second increment and add an idempotency test before using reputation for moderation decisions.
+The ban watcher no longer credits duplicate reporters twice when a ban is confirmed. Focused regression tests cover all three release fixes.
 
 ## Fix before growing traffic
+
+Several reputation, cooldown, moderation, and lookup counters still use KV read-modify-write operations. Cloudflare KV is not a transactional counter store, so truly concurrent requests can overwrite one another. Move mutable counters to a transactional store such as a Durable Object or D1 before using them for high-stakes moderation or at larger scale.
 
 `/track`, track refresh/remove controls, some `/dev` tasks, and a few stats/profile component paths perform API or KV work before sending Discord's initial acknowledgement. A tracking refresh may fetch up to 25 players sequentially. Convert these paths to the deferred-response pattern already used by `/profile`, `/stats`, and `/compare`, then edit the original response after the work finishes.
 

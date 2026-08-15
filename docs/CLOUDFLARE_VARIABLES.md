@@ -17,23 +17,23 @@ Do not add a different `DISCORD_BOT_TOKEN` while the working `DISCORD_TOKEN` exi
 
 If the token is no longer saved anywhere outside Cloudflare, website changes still do not require a reset. A reset is needed only when the token was exposed/revoked or when you need it locally for `pnpm register`; Cloudflare will not reveal an encrypted value after creation.
 
-## Add these website Text variables
+## Website Text variables
 
 Add these as **Text**, not Secret:
 
-| Binding               | Recommendation                                                                                           | Fallback                                                                                        |
-| --------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `SUPPORT_SERVER_URL`  | Required before launch; use the current permanent Patch support invite, such as `https://discord.gg/...` | The public Patch documentation, because the recovered invite now points to an unrelated server. |
-| `WEBSITE_URL`         | Recommended once the final HTTPS Worker/custom domain is known                                           | The current request origin.                                                                     |
-| `PATCH_INVITE_URL`    | Optional; use the installation URL from Discord's Developer Portal                                       | Generated from `DISCORD_APPLICATION_ID` with `bot` and `applications.commands` scopes.          |
-| `PROMO_KIT_URL`       | Optional and currently unused by the redesigned homepage                                                 | No public promo-kit link.                                                                       |
-| `REPORT_DM_IMAGE_URL` | Optional; unrelated to the website                                                                       | Report DMs render without the external banner.                                                  |
+| Binding               | Recommendation                                                                                          | Fallback                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `SUPPORT_SERVER_URL`  | Configured in `wrangler.jsonc` with the permanent support invite; update it there if the invite changes | The public Patch repository.                                                                |
+| `WEBSITE_URL`         | Configured in `wrangler.jsonc` with the production Worker URL; update it if a custom domain is adopted  | The current request origin.                                                                 |
+| `PATCH_INVITE_URL`    | Optional; use the Discord-provided installation URL from the Developer Portal                           | Generated from `DISCORD_APPLICATION_ID` and the app's default user/server install settings. |
+| `PROMO_KIT_URL`       | Optional and currently unused by the redesigned homepage                                                | No public promo-kit link.                                                                   |
+| `REPORT_DM_IMAGE_URL` | Optional; unrelated to the website                                                                      | Report DMs render without the external banner.                                              |
 
 `SUPPORT_SERVER_ID` is not referenced by the current source. It can be removed without changing behavior, or kept for a future server/staff authorization check. It does not replace `SUPPORT_SERVER_URL` because a Discord server ID is not a clickable invite.
 
-## Safe dashboard change
+## Dashboard-managed values
 
-In **Settings → Variables and Secrets**, add `SUPPORT_SERVER_URL` as a Text variable and deploy that settings change. You do not need to open or replace the three encrypted rows. Add `WEBSITE_URL` and `PATCH_INVITE_URL` when their final URLs are known.
+The support and website URLs are version-controlled non-secret values. You do not need to open or replace the three encrypted rows. `PATCH_INVITE_URL` can remain unset because the existing application ID generates the install link.
 
 The project keeps `keep_vars: true` so Wrangler preserves dashboard-managed Text variables. Cloudflare also preserves encrypted secrets across ordinary code deployments. Bindings are target-specific, however: deploying under a new Worker name, account, or Wrangler environment requires configuring them again for that target.
 

@@ -1,6 +1,7 @@
 // @ts-nocheck
 // Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
 import { renderPlayerCardPng } from './card-image';
+import { supportServerLabel } from './brand';
 import { displayName, latestSeason, playerId } from './cops';
 import { getAcceptedReport, getPlayerTagRecord } from './storage';
 
@@ -119,10 +120,11 @@ async function writeKvCache(env, key, card, ttlSeconds) {
 	});
 }
 
-function profileCardFingerprint(profile, report, tags = []) {
+function profileCardFingerprint(profile, report, tags = [], supportLabel) {
 	const season = latestSeason(profile);
 	return JSON.stringify({
 		version: CARD_CACHE_VERSION,
+		supportLabel,
 		name: displayName(profile),
 		playerId: playerId(profile),
 		level: profile.basicInfo?.playerLevel?.level,
@@ -150,8 +152,8 @@ async function cacheKeysForLookup(player) {
 	};
 }
 
-async function cacheKeysForProfile(profile, report, tags = []) {
-	const fingerprint = profileCardFingerprint(profile, report, tags);
+async function cacheKeysForProfile(profile, report, tags = [], supportLabel) {
+	const fingerprint = profileCardFingerprint(profile, report, tags, supportLabel);
 	return {
 		memory: `content:${fingerprint}`,
 		durable: `content:${await sha256(fingerprint)}`,
@@ -218,7 +220,7 @@ async function getOrRenderPlayerCardFromProfile(env, player, profile, waitUntil,
 	const lookupCount = context.lookupCount;
 	const display = displayName(profile);
 	const lookupKeys = await cacheKeysForLookup(player);
-	const contentKeys = await cacheKeysForProfile(profile, report, tags);
+	const contentKeys = await cacheKeysForProfile(profile, report, tags, supportServerLabel(env));
 	const contentMemoryHit = recall(contentKeys.memory);
 	if (contentMemoryHit) {
 		if (!isPng(contentMemoryHit.body)) {
@@ -237,7 +239,7 @@ async function getOrRenderPlayerCardFromProfile(env, player, profile, waitUntil,
 		return contentDurableHit;
 	}
 	const rendered = {
-		body: await renderPlayerCardPng(profile, 'Patch', report, tags, lookupCount),
+		body: await renderPlayerCardPng(profile, 'Patch', report, tags, lookupCount, env),
 		filename: attachmentName(display),
 		description: `Patch profile card for ${display}`,
 	};

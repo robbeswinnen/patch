@@ -4,6 +4,9 @@
 	"private": true,
 	"description": "Recovered source for the Patch Critical Ops Discord bot",
 	"packageManager": "pnpm@11.19.0",
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"scripts": {
 		"check": "pnpm run typecheck && pnpm run test",
 		"deploy": "wrangler deploy",

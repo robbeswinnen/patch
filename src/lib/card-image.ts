@@ -224,8 +224,8 @@ function rankIcon(rank, x, y) {
 	].join('');
 }
 
-function topMetadataLine() {
-	return Math.random() < 0.5 ? `SUPPORT ${DOT} ${supportServerLabel()}` : DEVELOPER_CREDIT;
+function topMetadataLine(env) {
+	return Math.random() < 0.5 ? `SUPPORT ${DOT} ${supportServerLabel(env)}` : DEVELOPER_CREDIT;
 }
 
 function text(value, x, y, options = {}) {
@@ -416,7 +416,7 @@ function statusMarker(status, value) {
 	return icon(status.icon, placement.iconX, STATUS_ICON_Y, STATUS_ICON_SIZE, status.color);
 }
 
-function buildPlayerCardSvg(profile, _requestedBy = 'Patch', report, tags = [], lookupCount) {
+function buildPlayerCardSvg(profile, _requestedBy = 'Patch', report, tags = [], lookupCount, env) {
 	const name = displayName(profile);
 	const season = latestSeason(profile);
 	const ranked = season?.ranked;
@@ -429,7 +429,7 @@ function buildPlayerCardSvg(profile, _requestedBy = 'Patch', report, tags = [], 
 	const status = publicStatusFor(report, tags);
 	const statusText = cardStatusText(status);
 	const statusPosition = statusPlacement(status, statusText);
-	const topMetadata = topMetadataLine();
+	const topMetadata = topMetadataLine(env);
 	const identity = `${formatRawId(profile.basicInfo?.userID)} ${DOT} ${clanLine(profile)}`;
 	const footerLabel = `LAST SYNC ${DOT} JUST NOW`;
 	const progressLabel = `RANK PROGRESS ${DOT} ${currentRank.toUpperCase()} -> ${progress.nextLabel.toUpperCase()}`;
@@ -555,11 +555,11 @@ async function warmPlayerCardRenderer() {
 	return resvgWarmupPromise;
 }
 
-async function renderPlayerCardPng(profile, requestedBy, report, tags = [], lookupCount) {
+async function renderPlayerCardPng(profile, requestedBy, report, tags = [], lookupCount, env) {
 	await ensureResvgInitialized();
-	const png = renderSvgToPng(buildPlayerCardSvg(profile, requestedBy, report, tags, lookupCount));
+	const png = renderSvgToPng(buildPlayerCardSvg(profile, requestedBy, report, tags, lookupCount, env));
 	resvgWarmupPromise ||= Promise.resolve();
 	return png;
 }
 
-export { renderPlayerCardPng, warmPlayerCardRenderer };
+export { buildPlayerCardSvg, renderPlayerCardPng, warmPlayerCardRenderer };

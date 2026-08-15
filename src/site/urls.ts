@@ -1,6 +1,6 @@
 import type { Env } from '../types';
 
-const PATCH_DOCS_URL = 'https://robbeswinnen.github.io/patch/';
+const PATCH_DOCS_URL = 'https://github.com/robbeswinnen/patch';
 
 function safeUrl(value: string | undefined, protocols: readonly string[]): string | undefined {
 	if (!value?.trim()) {
@@ -27,11 +27,9 @@ function addPatchUrl(env: Env): string {
 	if (!applicationId || !/^\d+$/.test(applicationId)) {
 		return safeUrl(env.SUPPORT_SERVER_URL, ['https:']) ?? PATCH_DOCS_URL;
 	}
-	const params = new URLSearchParams({
-		client_id: applicationId,
-		permissions: '0',
-		scope: 'bot applications.commands',
-	});
+	// A Discord-provided link uses the application's default install settings,
+	// allowing Discord to offer both user and server installation when enabled.
+	const params = new URLSearchParams({ client_id: applicationId });
 	return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 

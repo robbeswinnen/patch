@@ -26,6 +26,46 @@ import { startOnboardingSoon } from './lib/onboarding';
 import { refreshStaffReviewAnalytics, updateMonthlyCommunityRecapBaseline } from './lib/reporting';
 import { runScheduledRankedUpdates } from './lib/tracking';
 
+const MAX_INTERACTION_BODY_BYTES = 1024 * 1024;
+
+async function readInteractionBody(request) {
+	const declaredLength = Number(request.headers.get('content-length') || '0');
+	if (Number.isFinite(declaredLength) && declaredLength > MAX_INTERACTION_BODY_BYTES) {
+		return undefined;
+	}
+	if (!request.body) {
+		return '';
+	}
+
+	const reader = request.body.getReader();
+	const chunks = [];
+	let totalBytes = 0;
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) {
+				break;
+			}
+			totalBytes += value.byteLength;
+			if (totalBytes > MAX_INTERACTION_BODY_BYTES) {
+				await reader.cancel();
+				return undefined;
+			}
+			chunks.push(value);
+		}
+	} finally {
+		reader.releaseLock();
+	}
+
+	const bytes = new Uint8Array(totalBytes);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return new TextDecoder().decode(bytes);
+}
+
 async function handleComponent(interaction, env, runtime) {
 	const customIdValue = interaction.data?.custom_id || '';
 	const parsed = parseCustomId(customIdValue);
@@ -122,10 +162,15 @@ const worker = {
 		}
 		const signature = request.headers.get('x-signature-ed25519');
 		const signatureTimestamp = request.headers.get('x-signature-timestamp');
-		const body = await request.text();
 		if (!signature || !signatureTimestamp) {
 			return new Response('Missing Discord signature headers.', {
 				status: 401,
+			});
+		}
+		const body = await readInteractionBody(request);
+		if (body === undefined) {
+			return new Response('Interaction payload is too large.', {
+				status: 413,
 			});
 		}
 		const isValidRequest = await verifyKey(body, signature, signatureTimestamp, env.DISCORD_PUBLIC_KEY);

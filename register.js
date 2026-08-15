@@ -1,257 +1,229 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require('node:fs');
+const path = require('node:path');
 
-function loadDotEnv(file = ".env") {
-  const filePath = path.join(__dirname, file);
-  if (!fs.existsSync(filePath)) {
-    return;
-  }
+function loadDotEnv(filename = '.env') {
+	const filePath = path.join(__dirname, filename);
+	if (!fs.existsSync(filePath)) {
+		return;
+	}
 
-  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      continue;
-    }
+	for (const line of fs.readFileSync(filePath, 'utf8').split(/\r?\n/)) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith('#')) {
+			continue;
+		}
 
-    const separator = trimmed.indexOf("=");
-    if (separator === -1) {
-      continue;
-    }
+		const separator = trimmed.indexOf('=');
+		if (separator < 1) {
+			continue;
+		}
 
-    const key = trimmed.slice(0, separator).trim();
-    const rawValue = trimmed.slice(separator + 1).trim();
-    const value = rawValue.replace(/^['"]|['"]$/g, "");
-
-    process.env[key] ||= value;
-  }
+		const key = trimmed.slice(0, separator).trim();
+		const rawValue = trimmed.slice(separator + 1).trim();
+		const value = rawValue.replace(/^(['"])(.*)\1$/, '$2');
+		process.env[key] ||= value;
+	}
 }
 
 loadDotEnv();
 
-const applicationId = process.env.DISCORD_APPLICATION_ID;
-const token = process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_TOKEN;
-const developerDiscordUserId = process.env.DEVELOPER_DISCORD_USER_ID;
+const APPLICATION_COMMAND = 1;
+const STRING_OPTION = 3;
+const ATTACHMENT_OPTION = 11;
 
-const contexts = {
-  integration_types: [0, 1],
-  contexts: [0, 1, 2],
+const USER_INSTALLABLE_CONTEXTS = {
+	integration_types: [0, 1],
+	contexts: [0, 1, 2],
 };
 
-const stringOption = {
-  type: 3,
-  required: true,
-  min_length: 1,
-  max_length: 64,
+const PLAYER_OPTION = {
+	description: 'Critical Ops name or player ID.',
+	type: STRING_OPTION,
+	required: true,
+	min_length: 1,
+	max_length: 64,
 };
 
-const attachmentOption = {
-  type: 11,
-  required: true,
+const PRIVATE_RESPONSE_OPTION = {
+	name: 'private',
+	description: 'Only you can see the command response.',
+	type: STRING_OPTION,
+	required: false,
+	choices: [{ name: 'True', value: 'true' }],
 };
 
-const playerOption = {
-  name: "player",
-  description: "Critical Ops name or player ID.",
-  ...stringOption,
-};
-
-const playerTagChoices = [
-  { name: "Verified", value: "verified" },
-  { name: "Developer", value: "developer" },
-  { name: "Creator", value: "creator" },
-  { name: "Competitive", value: "competitive" },
-  { name: "Organizer", value: "organizer" },
-  { name: "All tags", value: "all" },
+const PLAYER_TAG_CHOICES = [
+	{ name: 'Verified', value: 'verified' },
+	{ name: 'Partner', value: 'partner' },
+	{ name: 'Developer', value: 'developer' },
+	{ name: 'Creator', value: 'creator' },
+	{ name: 'Competitive', value: 'competitive' },
+	{ name: 'Organizer', value: 'organizer' },
 ];
 
-const commands = [
-  {
-    name: "help",
-    description: "Patch help, status, and community links.",
-    type: 1,
-    ...contexts,
-  },
-  {
-    name: "stats",
-    description: "Read a player's public stats in clean pages.",
-    type: 1,
-    options: [playerOption],
-    ...contexts,
-  },
-  {
-    name: "profile",
-    description: "Generate a shareable player profile card.",
-    type: 1,
-    options: [playerOption],
-    ...contexts,
-  },
-  {
-    name: "compare",
-    description: "Compare two players with current-season context.",
-    type: 1,
-    options: [
-      { ...playerOption, name: "player1" },
-      { ...playerOption, name: "player2" },
-    ],
-    ...contexts,
-  },
-  {
-    name: "clan",
-    description: "Look up a leaderboard clan by name or tag.",
-    type: 1,
-    options: [
-      {
-        name: "query",
-        description: "Clan name or tag.",
-        ...stringOption,
-      },
-    ],
-    ...contexts,
-  },
-  {
-    name: "track",
-    description: "Track ranked changes and get weekly DM recaps.",
-    type: 1,
-    options: [playerOption],
-    ...contexts,
-  },
-  {
-    name: "tags",
-    description: "Explain Patch account status tags.",
-    type: 1,
-    ...contexts,
-  },
-  {
-    name: "report",
-    description: "Send a player report to Patch staff for review.",
-    type: 1,
-    options: [
-      playerOption,
-      {
-        name: "proof",
-        description: "Image or video proof staff can review.",
-        ...attachmentOption,
-      },
-    ],
-    ...contexts,
-  },
-];
-
-if (developerDiscordUserId) {
-  commands.push({
-    name: "dev",
-    description: "Developer-only Patch tools.",
-    type: 1,
-    options: [
-      {
-        name: "remove-report",
-        description: "Remove an accepted player report.",
-        type: 1,
-        options: [
-          {
-            ...playerOption,
-          },
-        ],
-      },
-      {
-        name: "tag",
-        description: "Assign or remove a public player tag.",
-        type: 1,
-        options: [
-          {
-            ...playerOption,
-          },
-          {
-            name: "action",
-            description: "Tag action.",
-            type: 3,
-            required: true,
-            choices: [
-              { name: "Add", value: "add" },
-              { name: "Remove", value: "remove" },
-            ],
-          },
-          {
-            name: "tag",
-            description: "Public tag to add or remove.",
-            type: 3,
-            required: true,
-            choices: playerTagChoices,
-          },
-        ],
-      },
-      {
-        name: "report-blacklist",
-        description: "Add or remove a user from report submissions.",
-        type: 1,
-        options: [
-          {
-            name: "user",
-            description: "Discord user ID to add or remove.",
-            ...stringOption,
-          },
-          {
-            name: "action",
-            description: "Blacklist action.",
-            type: 3,
-            required: true,
-            choices: [
-              { name: "Add", value: "add" },
-              { name: "Remove", value: "remove" },
-            ],
-          },
-          {
-            name: "reason",
-            description: "Staff note for adding a blacklist entry.",
-            type: 3,
-            required: false,
-            min_length: 3,
-            max_length: 200,
-          },
-        ],
-      },
-    ],
-    ...contexts,
-  });
+function withPrivateResponseOption(command) {
+	return {
+		...command,
+		options: [...(command.options || []), PRIVATE_RESPONSE_OPTION],
+	};
 }
 
-function requiredEnv(name, value) {
-  if (!value) {
-    throw new Error(`Missing ${name}`);
-  }
+// Keep this list in the same order and shape as src/commands/index.ts.
+const commands = [
+	withPrivateResponseOption({
+		name: 'profile',
+		description: 'Generate a shareable player profile card.',
+		type: APPLICATION_COMMAND,
+		options: [{ name: 'player', ...PLAYER_OPTION }],
+		...USER_INSTALLABLE_CONTEXTS,
+	}),
+	{
+		name: 'report',
+		description: 'Send a player report to Patch staff for review.',
+		type: APPLICATION_COMMAND,
+		options: [
+			{ name: 'player', ...PLAYER_OPTION },
+			{
+				name: 'proof',
+				description: 'Image or video proof staff can review.',
+				type: ATTACHMENT_OPTION,
+				required: true,
+			},
+		],
+		...USER_INSTALLABLE_CONTEXTS,
+	},
+	withPrivateResponseOption({
+		name: 'stats',
+		description: "Read a player's public stats in clean pages.",
+		type: APPLICATION_COMMAND,
+		options: [{ name: 'player', ...PLAYER_OPTION }],
+		...USER_INSTALLABLE_CONTEXTS,
+	}),
+	{
+		name: 'track',
+		description: 'View tracked changes or add a player to your tracking dashboard.',
+		type: APPLICATION_COMMAND,
+		options: [{ name: 'player', ...PLAYER_OPTION, required: false }],
+		...USER_INSTALLABLE_CONTEXTS,
+	},
+	withPrivateResponseOption({
+		name: 'help',
+		description: 'Open the Patch app dashboard.',
+		type: APPLICATION_COMMAND,
+		...USER_INSTALLABLE_CONTEXTS,
+	}),
+	withPrivateResponseOption({
+		name: 'compare',
+		description: 'Compare two players with current-season context.',
+		type: APPLICATION_COMMAND,
+		options: [
+			{ name: 'player1', ...PLAYER_OPTION },
+			{ name: 'player2', ...PLAYER_OPTION },
+		],
+		...USER_INSTALLABLE_CONTEXTS,
+	}),
+	{
+		name: 'dev',
+		description: 'Developer-only Patch tools.',
+		type: APPLICATION_COMMAND,
+		options: [
+			{
+				name: 'task',
+				description: 'Cleanup task to run.',
+				type: STRING_OPTION,
+				required: true,
+				choices: [
+					{ name: 'Clear accepted report', value: 'report-clear' },
+					{ name: 'Add player tag', value: 'tag-add' },
+					{ name: 'Remove player tag', value: 'tag-remove' },
+					{ name: 'Clear player tags', value: 'tag-clear' },
+					{ name: 'Pause user reports', value: 'reports-pause' },
+					{ name: 'Resume user reports', value: 'reports-resume' },
+					{ name: 'Community recap', value: 'community-recap' },
+				],
+			},
+			{
+				name: 'target',
+				description: 'Player name/ID, or Discord user ID/mention for report pauses.',
+				type: STRING_OPTION,
+				required: false,
+				min_length: 1,
+				max_length: 100,
+			},
+			{
+				name: 'tag',
+				description: 'Public tag for tag-add or tag-remove.',
+				type: STRING_OPTION,
+				required: false,
+				choices: PLAYER_TAG_CHOICES,
+			},
+			{
+				name: 'note',
+				description: 'Staff note for pausing reports.',
+				type: STRING_OPTION,
+				required: false,
+				min_length: 3,
+				max_length: 200,
+			},
+		],
+		...USER_INSTALLABLE_CONTEXTS,
+	},
+];
 
-  return value;
+function requiredEnv(name, value) {
+	if (!value || !value.trim()) {
+		throw new Error(`Missing ${name}. Add it to ${path.join(__dirname, '.env')} or the current environment.`);
+	}
+
+	return value.trim();
+}
+
+function describeDiscordError(data) {
+	if (typeof data === 'string') {
+		return data;
+	}
+
+	if (data && typeof data === 'object') {
+		const code = data.code ? `code ${data.code}: ` : '';
+		return `${code}${data.message || JSON.stringify(data)}`;
+	}
+
+	return 'Discord returned an empty error response.';
 }
 
 async function main() {
-  const route = `applications/${requiredEnv(
-    "DISCORD_APPLICATION_ID",
-    applicationId
-  )}/commands`;
-  const response = await fetch(`https://discord.com/api/v10/${route}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bot ${requiredEnv("DISCORD_BOT_TOKEN or DISCORD_TOKEN", token)}`,
-    },
-    body: JSON.stringify(commands),
-  });
+	const applicationId = requiredEnv('DISCORD_APPLICATION_ID', process.env.DISCORD_APPLICATION_ID);
+	const token = requiredEnv('DISCORD_BOT_TOKEN (or legacy DISCORD_TOKEN)', process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_TOKEN);
 
-  const data = await response.json();
+	if (!/^\d+$/.test(applicationId)) {
+		throw new Error('DISCORD_APPLICATION_ID must contain only digits.');
+	}
 
-  if (!response.ok) {
-    console.error("Failed to register commands:");
-    console.error(data);
-    process.exitCode = 1;
-    return;
-  }
+	const response = await fetch(`https://discord.com/api/v10/applications/${applicationId}/commands`, {
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bot ${token}`,
+		},
+		body: JSON.stringify(commands),
+	});
 
-  console.log("Commands registered:");
-  console.log(data);
+	const bodyText = await response.text();
+	let data;
+	try {
+		data = bodyText ? JSON.parse(bodyText) : undefined;
+	} catch {
+		data = bodyText;
+	}
+
+	if (!response.ok) {
+		throw new Error(`Discord rejected the command registration (${response.status} ${response.statusText}): ${describeDiscordError(data)}`);
+	}
+
+	console.log(`Registered ${commands.length} global Discord commands.`);
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+	console.error(`Command registration failed: ${error.message}`);
+	process.exitCode = 1;
 });

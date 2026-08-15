@@ -29,11 +29,11 @@ Use:
 
 Patch starts with the overview page, then lets you switch pages:
 
-| Page | What it explains |
-| --- | --- |
+| Page     | What it explains                                                |
+| -------- | --------------------------------------------------------------- |
 | Overview | IGN, ID, level, clan, ranked now, account status, public status |
-| Season | Current season ranked, casual, and custom stats |
-| All-Time | Public seasonal totals added together |
+| Season   | Current season ranked, casual, and custom stats                 |
+| All-Time | Public seasonal totals added together                           |
 
 The public status area can show `Secure`, `Community report`, or curated tags.
 === :icon-patch-card: `/compare`
@@ -61,12 +61,12 @@ Use:
 
 Patch checks the public clan leaderboard and builds two pages:
 
-| Page | What it shows |
-| --- | --- |
-| Overview | Rank, player count, total rating, average rating, quick read |
-| Performance | Kills, deaths, assists, K/D, wins, losses, W/L, win rate |
-=== :icon-patch-watch: `/track`
-Use:
+| Page                            | What it shows                                                |
+| ------------------------------- | ------------------------------------------------------------ |
+| Overview                        | Rank, player count, total rating, average rating, quick read |
+| Performance                     | Kills, deaths, assists, K/D, wins, losses, W/L, win rate     |
+| === :icon-patch-watch: `/track` |
+| Use:                            |
 
 ```text
 /track player:<name-or-id>

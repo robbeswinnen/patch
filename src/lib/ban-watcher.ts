@@ -1,216 +1,174 @@
-import type { Env, InteractionResponseData } from "../types";
-import type { PlayerReport } from "./cops";
+// @ts-nocheck
+// Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
+import { reportReceiptMessage } from './app-ui';
+import { displayName, fetchProfileByPlayerOption, hasActiveBan } from './cops';
+import { discordBotToken, sendDiscordDm } from './discord';
+import { refreshStaffReviewAnalytics } from './reporting';
 import {
-  EMBED_COLOR,
-  displayName,
-  fetchProfileByPlayerOption,
-  formatBan,
-  hasActiveBan,
-} from "./cops";
-import { discordBotToken, sendDiscordDm } from "./discord";
-import {
-  listAcceptedReports,
-  putAcceptedReport,
-  type PendingReport,
-} from "./storage";
-import { embedImage, quoteList } from "./presentation";
+	getPendingReport,
+	getReporterReputation,
+	listAcceptedReports,
+	markPendingReportBanConfirmed,
+	putAcceptedReport,
+	recordReportBanConfirmed,
+} from './storage';
 
-const BAN_WATCH_RECHECK_MS = 6 * 60 * 60 * 1000;
+const BAN_WATCH_RECHECK_MS = 6 * 60 * 60 * 1e3;
 const MAX_BAN_WATCH_CHECKS_PER_RUN = 20;
-
-export type BanWatcherResult = {
-  checked: number;
-  banned: number;
-  notified: number;
-  skipped: number;
-};
-
-function recentEnough(isoDate: string | undefined, now: Date) {
-  if (!isoDate) {
-    return false;
-  }
-
-  const checkedAt = Date.parse(isoDate);
-  return Number.isFinite(checkedAt) && now.getTime() - checkedAt < BAN_WATCH_RECHECK_MS;
+function recentEnough(isoDate, now) {
+	if (!isoDate) {
+		return false;
+	}
+	const checkedAt = Date.parse(isoDate);
+	return Number.isFinite(checkedAt) && now.getTime() - checkedAt < BAN_WATCH_RECHECK_MS;
 }
 
-function reportReason(reason: string | undefined) {
-  return reason?.trim() || "the staff-reviewed report";
+function buildReportDecisionMessage(options) {
+	return reportReceiptMessage({
+		env: options.env,
+		report: options.report,
+		reputation: options.reputation,
+	});
 }
 
-export function buildReportDecisionMessage(options: {
-  accepted: boolean;
-  playerName: string;
-  reason?: string;
-}): InteractionResponseData {
-  if (options.accepted) {
-    return {
-      embeds: [
-        {
-          title: "Report accepted. Good eye.",
-          description: quoteList([
-            `Your report on **${options.playerName}** checked out.`,
-            `Staff marked it as **${reportReason(options.reason)}**.`,
-            "Tiny victory lap: you made the server cleaner without making a whole thing out of it.",
-          ]),
-          color: 0x2ecc71,
-          image: embedImage("report"),
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    };
-  }
-
-  return {
-    embeds: [
-      {
-        title: "Report reviewed. No action this time.",
-        description: quoteList([
-          `Staff looked at your report on **${options.playerName}**.`,
-          `Decision: **${reportReason(options.reason)}**.`,
-          "No bad vibes. Keep sending clean proof when something feels off; good reports still help the team move faster.",
-        ]),
-        color: 0x8b96a3,
-        image: embedImage("report"),
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  };
+function buildReportBanMessage(options) {
+	return reportReceiptMessage({
+		env: options.env,
+		report: options.report,
+		reputation: options.reputation,
+	});
 }
 
-export function buildReportBanMessage(options: {
-  playerName: string;
-  reason?: string;
-  banSummary?: string;
-}): InteractionResponseData {
-  return {
-    embeds: [
-      {
-        title: "Bullseye. They got banned.",
-        description: quoteList([
-          `The player you reported, **${options.playerName}**, is now banned in-game.`,
-          `Your accepted report: **${reportReason(options.reason)}**.`,
-          "That is the loop closing. Quiet hero work, honestly.",
-          options.banSummary ? `Ban status: ${options.banSummary.split("\n")[0]}` : undefined,
-        ]),
-        color: EMBED_COLOR,
-        image: embedImage("report"),
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  };
+async function sendReportDecisionDm(env, report, _accepted) {
+	if (!discordBotToken(env)) {
+		return;
+	}
+	const reputation = await getReporterReputation(env, report.reporterId);
+	await sendDiscordDm(
+		env,
+		report.reporterId,
+		buildReportDecisionMessage({
+			env,
+			report,
+			reputation,
+		}),
+	);
 }
 
-export async function sendReportDecisionDm(
-  env: Env,
-  report: PendingReport,
-  accepted: boolean
-) {
-  if (!discordBotToken(env)) {
-    return;
-  }
-
-  await sendDiscordDm(
-    env,
-    report.reporterId,
-    buildReportDecisionMessage({
-      accepted,
-      playerName: report.targetName,
-      reason: report.publicReason,
-    })
-  );
+async function sendReportBanDm(env, report, confirmedReport) {
+	if (!discordBotToken(env)) {
+		return;
+	}
+	const pending = confirmedReport ||
+		(await getPendingReport(env, report.reportId)) || {
+			id: report.reportId,
+			status: 'ban_confirmed',
+			reporterId: report.reporterId,
+			targetPlayerId: report.playerId,
+			targetName: report.playerName,
+			reason: report.reason,
+			publicReason: report.reason,
+			createdAt: report.acceptedAt || /* @__PURE__ */ new Date().toISOString(),
+			reviewedAt: report.acceptedAt,
+			reviewedBy: report.acceptedBy,
+			reviewerNote: report.reviewerNote,
+			banConfirmedAt: report.banDetectedAt,
+		};
+	const reputation = await getReporterReputation(env, report.reporterId);
+	await sendDiscordDm(
+		env,
+		report.reporterId,
+		buildReportBanMessage({
+			env,
+			report: pending,
+			reputation,
+		}),
+	);
 }
 
-export async function sendReportBanDm(
-  env: Env,
-  report: PlayerReport,
-  banSummary?: string
-) {
-  if (!discordBotToken(env)) {
-    return;
-  }
-
-  await sendDiscordDm(
-    env,
-    report.reporterId,
-    buildReportBanMessage({
-      playerName: report.playerName,
-      reason: report.reason,
-      banSummary,
-    })
-  );
+async function runBanWatcher(env, now = /* @__PURE__ */ new Date()) {
+	const result = {
+		checked: 0,
+		banned: 0,
+		notified: 0,
+		skipped: 0,
+	};
+	if (!env.USER_PREFERENCES || !discordBotToken(env)) {
+		return result;
+	}
+	const reports = await listAcceptedReports(env);
+	for (const report of reports) {
+		if (report.banNotifiedAt || recentEnough(report.banLastCheckedAt, now)) {
+			result.skipped += 1;
+			continue;
+		}
+		if (result.checked >= MAX_BAN_WATCH_CHECKS_PER_RUN) {
+			result.skipped += 1;
+			continue;
+		}
+		result.checked += 1;
+		try {
+			const profile = await fetchProfileByPlayerOption(report.playerId);
+			const checkedReport = {
+				...report,
+				playerName: profile ? displayName(profile) : report.playerName,
+				banLastCheckedAt: now.toISOString(),
+			};
+			if (!profile || !hasActiveBan(profile.ban)) {
+				await putAcceptedReport(env, checkedReport);
+				continue;
+			}
+			result.banned += 1;
+			const confirmedAt = now.toISOString();
+			const detectedReport = {
+				...checkedReport,
+				banDetectedAt: confirmedAt,
+			};
+			const confirmedPending = await markPendingReportBanConfirmed(env, report.reportId, confirmedAt);
+			if (!confirmedPending && !report.banDetectedAt) {
+				await recordReportBanConfirmed(env, report.reporterId, confirmedAt);
+			}
+			try {
+				await sendReportBanDm(env, detectedReport, confirmedPending);
+				result.notified += 1;
+			} catch (dmError) {
+				console.error('Failed to notify primary reporter', dmError);
+			}
+			if (report.duplicateReports && report.duplicateReports.length > 0) {
+				for (const dup of report.duplicateReports) {
+					try {
+						const dupConfirmedPending = await markPendingReportBanConfirmed(env, dup.reportId, confirmedAt);
+						await recordReportBanConfirmed(env, dup.reporterId, confirmedAt);
+						const dupPlayerReport = {
+							...detectedReport,
+							reporterId: dup.reporterId,
+							reportId: dup.reportId,
+						};
+						await sendReportBanDm(env, dupPlayerReport, dupConfirmedPending);
+						result.notified += 1;
+					} catch (dupError) {
+						console.error('Failed to notify duplicate reporter', {
+							reporterId: dup.reporterId,
+							error: dupError,
+						});
+					}
+				}
+			}
+			await putAcceptedReport(env, {
+				...detectedReport,
+				banNotifiedAt: confirmedAt,
+			});
+			await refreshStaffReviewAnalytics(env);
+		} catch (error) {
+			console.error('Ban watcher failed for accepted report', {
+				reportId: report.reportId,
+				playerId: report.playerId,
+				reporterId: report.reporterId,
+				error,
+			});
+		}
+	}
+	return result;
 }
 
-export async function runBanWatcher(
-  env: Env,
-  now = new Date()
-): Promise<BanWatcherResult> {
-  const result: BanWatcherResult = {
-    checked: 0,
-    banned: 0,
-    notified: 0,
-    skipped: 0,
-  };
-
-  if (!env.USER_PREFERENCES || !discordBotToken(env)) {
-    return result;
-  }
-
-  const reports = await listAcceptedReports(env);
-
-  for (const report of reports) {
-    if (report.banNotifiedAt || recentEnough(report.banLastCheckedAt, now)) {
-      result.skipped += 1;
-      continue;
-    }
-
-    if (result.checked >= MAX_BAN_WATCH_CHECKS_PER_RUN) {
-      result.skipped += 1;
-      continue;
-    }
-
-    result.checked += 1;
-
-    try {
-      const profile = await fetchProfileByPlayerOption(report.playerId);
-      const checkedReport: PlayerReport = {
-        ...report,
-        playerName: profile ? displayName(profile) : report.playerName,
-        banLastCheckedAt: now.toISOString(),
-      };
-
-      if (!profile || !hasActiveBan(profile.ban)) {
-        await putAcceptedReport(env, checkedReport);
-        continue;
-      }
-
-      result.banned += 1;
-      const banSummary = formatBan(profile.ban);
-      const detectedReport = {
-        ...checkedReport,
-        banDetectedAt: now.toISOString(),
-      };
-
-      try {
-        await sendReportBanDm(env, detectedReport, banSummary);
-        await putAcceptedReport(env, {
-          ...detectedReport,
-          banNotifiedAt: now.toISOString(),
-        });
-        result.notified += 1;
-      } catch (dmError) {
-        await putAcceptedReport(env, detectedReport);
-        throw dmError;
-      }
-    } catch (error) {
-      console.error("Ban watcher failed for accepted report", {
-        reportId: report.reportId,
-        playerId: report.playerId,
-        reporterId: report.reporterId,
-        error,
-      });
-    }
-  }
-
-  return result;
-}
+export { runBanWatcher, sendReportDecisionDm };

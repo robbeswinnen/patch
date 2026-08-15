@@ -1,0 +1,11 @@
+# Copy this file to .dev.vars for `pnpm dev`. Never commit the real values.
+DISCORD_APPLICATION_ID="your_discord_application_id"
+DISCORD_PUBLIC_KEY="your_discord_public_key"
+DISCORD_BOT_TOKEN="your_discord_bot_token"
+DEVELOPER_DISCORD_USER_IDS="developer_id_1,developer_id_2"
+SUPPORT_REPORT_CHANNEL_ID="your_support_report_channel_id"
+SUPPORT_SERVER_URL="https://discord.gg/your-support-server"
+WEBSITE_URL="http://localhost:8787"
+PATCH_INVITE_URL=""
+PROMO_KIT_URL=""
+REPORT_DM_IMAGE_URL=""

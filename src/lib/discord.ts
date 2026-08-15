@@ -1,402 +1,420 @@
-import type {
-  CommandRuntime,
-  DiscordComponent,
-  DiscordInteraction,
-  DiscordOption,
-  DiscordAttachment,
-  DiscordUser,
-  Env,
-  InteractionFile,
-  InteractionResponseData,
-} from "../types";
+// @ts-nocheck
+// Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
 
-export const EPHEMERAL = 1 << 6;
-export const APPLICATION_COMMAND = 2;
-export const MESSAGE_COMPONENT = 3;
-export const MODAL_SUBMIT = 5;
-export const RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE = 4;
-export const RESPONSE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
-export const RESPONSE_UPDATE_MESSAGE = 7;
-export const RESPONSE_MODAL = 9;
-export const APPLICATION_COMMAND_OPTION_STRING = 3;
-export const APPLICATION_COMMAND_OPTION_SUB_COMMAND = 1;
-export const APPLICATION_COMMAND_OPTION_ATTACHMENT = 11;
-export const COMPONENT_ACTION_ROW = 1;
-export const COMPONENT_BUTTON = 2;
-export const COMPONENT_STRING_SELECT = 3;
-export const COMPONENT_TEXT_INPUT = 4;
-export const COMPONENT_LABEL = 18;
-export const BUTTON_PRIMARY = 1;
-export const BUTTON_SECONDARY = 2;
-export const BUTTON_SUCCESS = 3;
-export const BUTTON_DANGER = 4;
-export const TEXT_INPUT_SHORT = 1;
-export const TEXT_INPUT_PARAGRAPH = 2;
-
-export const GUILD_INSTALL = 0;
-export const USER_INSTALL = 1;
-export const GUILD_CONTEXT = 0;
-export const BOT_DM_CONTEXT = 1;
-export const PRIVATE_CHANNEL_CONTEXT = 2;
-export const USER_INSTALLABLE_CONTEXTS = {
-  integration_types: [GUILD_INSTALL, USER_INSTALL],
-  contexts: [GUILD_CONTEXT, BOT_DM_CONTEXT, PRIVATE_CHANNEL_CONTEXT],
+const EPHEMERAL = 1 << 6;
+const IS_COMPONENTS_V2 = 1 << 15;
+const APPLICATION_COMMAND = 2;
+const MESSAGE_COMPONENT = 3;
+const MODAL_SUBMIT = 5;
+const RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE = 4;
+const RESPONSE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
+const RESPONSE_DEFERRED_UPDATE_MESSAGE = 6;
+const RESPONSE_UPDATE_MESSAGE = 7;
+const RESPONSE_MODAL = 9;
+const APPLICATION_COMMAND_OPTION_STRING = 3;
+const APPLICATION_COMMAND_OPTION_ATTACHMENT = 11;
+const COMPONENT_ACTION_ROW = 1;
+const COMPONENT_BUTTON = 2;
+const COMPONENT_STRING_SELECT = 3;
+const COMPONENT_TEXT_INPUT = 4;
+const COMPONENT_SECTION = 9;
+const COMPONENT_TEXT_DISPLAY = 10;
+const COMPONENT_MEDIA_GALLERY = 12;
+const COMPONENT_SEPARATOR = 14;
+const COMPONENT_CONTAINER = 17;
+const COMPONENT_LABEL = 18;
+const BUTTON_SECONDARY = 2;
+const TEXT_INPUT_SHORT = 1;
+const TEXT_INPUT_PARAGRAPH = 2;
+const GUILD_INSTALL = 0;
+const USER_INSTALL = 1;
+const GUILD_CONTEXT = 0;
+const BOT_DM_CONTEXT = 1;
+const PRIVATE_CHANNEL_CONTEXT = 2;
+const USER_INSTALLABLE_CONTEXTS = {
+	integration_types: [GUILD_INSTALL, USER_INSTALL],
+	contexts: [GUILD_CONTEXT, BOT_DM_CONTEXT, PRIVATE_CHANNEL_CONTEXT],
 };
-
-export const PLAYER_OPTION = {
-  description: "Critical Ops name or player ID.",
-  type: APPLICATION_COMMAND_OPTION_STRING,
-  required: true,
-  min_length: 1,
-  max_length: 64,
+const PLAYER_OPTION = {
+	description: 'Critical Ops name or player ID.',
+	type: APPLICATION_COMMAND_OPTION_STRING,
+	required: true,
+	min_length: 1,
+	max_length: 64,
 };
-
-export function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+const PRIVATE_RESPONSE_OPTION_NAME = 'private';
+const PRIVATE_RESPONSE_OPTION = {
+	name: PRIVATE_RESPONSE_OPTION_NAME,
+	description: 'Only you can see the command response.',
+	type: APPLICATION_COMMAND_OPTION_STRING,
+	required: false,
+	choices: [
+		{
+			name: 'True',
+			value: 'true',
+		},
+	],
+};
+function withPrivateResponseOption(definition) {
+	const options = definition.options || [];
+	const hasPrivateOption = options.some((option) => {
+		return typeof option === 'object' && option !== null && 'name' in option && option.name === PRIVATE_RESPONSE_OPTION_NAME;
+	});
+	if (hasPrivateOption) {
+		return definition;
+	}
+	return {
+		...definition,
+		options: [...options, PRIVATE_RESPONSE_OPTION],
+	};
 }
 
-export function interactionResponse(
-  data: InteractionResponseData,
-  type = RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE
-) {
-  return jsonResponse({
-    type,
-    data,
-  });
+function jsonResponse(data, status = 200) {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
 }
 
-export function deferredInteractionResponse(data: InteractionResponseData = {}) {
-  return interactionResponse(data, RESPONSE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+function interactionResponse(data, type = RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE) {
+	return jsonResponse({
+		type,
+		data,
+	});
 }
 
-export function modalResponse(data: InteractionResponseData) {
-  return interactionResponse(data, RESPONSE_MODAL);
+function withEphemeralFlag(data = {}) {
+	return {
+		...data,
+		flags: (data.flags || 0) | EPHEMERAL,
+	};
 }
 
-export function runInBackground(
-  runtime: CommandRuntime | undefined,
-  job: () => Promise<unknown>
-) {
-  const promise = Promise.resolve().then(job);
-  if (runtime?.waitUntil) {
-    runtime.waitUntil(promise);
-  } else {
-    promise.catch((error) => console.error(error));
-  }
-  return promise;
+function privateResponseRequested(interaction) {
+	return (
+		interaction.data?.options?.some((option) => {
+			return option.name === PRIVATE_RESPONSE_OPTION_NAME && (option.value === true || option.value === 'true');
+		}) || false
+	);
 }
 
-function multipartPayload(
-  payload: unknown,
-  file: InteractionFile
-) {
-  const boundary = `discord-boundary-${crypto.randomUUID()}`;
-  const fileHeader = [
-    `--${boundary}`,
-    'Content-Disposition: form-data; name="payload_json"',
-    "Content-Type: application/json",
-    "",
-    JSON.stringify(payload),
-    `--${boundary}`,
-    `Content-Disposition: form-data; name="files[0]"; filename="${file.filename}"`,
-    `Content-Type: ${file.contentType}`,
-    "",
-  ].join("\r\n");
-  const body = new Blob([
-    `${fileHeader}\r\n`,
-    file.body,
-    `\r\n--${boundary}--\r\n`,
-  ]);
-
-  return {
-    body,
-    contentType: `multipart/form-data; boundary=${boundary}`,
-  };
+async function applyPrivateResponseOption(interaction, response) {
+	if (!privateResponseRequested(interaction)) {
+		return response;
+	}
+	try {
+		const payload = await response.clone().json();
+		if (payload.type === RESPONSE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE) {
+			return jsonResponse(
+				{
+					...payload,
+					data: {
+						...payload.data,
+						flags: EPHEMERAL,
+					},
+				},
+				response.status,
+			);
+		}
+		if (payload.type === RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE) {
+			return jsonResponse(
+				{
+					...payload,
+					data: withEphemeralFlag(payload.data),
+				},
+				response.status,
+			);
+		}
+	} catch {
+		return response;
+	}
+	return response;
 }
 
-export function multipartInteractionResponse(
-  data: InteractionResponseData,
-  file: InteractionFile,
-  type = RESPONSE_CHANNEL_MESSAGE_WITH_SOURCE
-) {
-  const payload = multipartPayload({
-    type,
-    data,
-  }, file);
-
-  return new Response(payload.body, {
-    headers: {
-      "Content-Type": payload.contentType,
-    },
-  });
+function deferredInteractionResponse(data = {}) {
+	return interactionResponse(data, RESPONSE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
 }
 
-export function updateMessageResponse(data: InteractionResponseData) {
-  return interactionResponse(data, RESPONSE_UPDATE_MESSAGE);
+function deferredUpdateMessageResponse() {
+	return interactionResponse({}, RESPONSE_DEFERRED_UPDATE_MESSAGE);
 }
 
-export function optionValue(options: DiscordOption[] | undefined, name: string) {
-  const value = options?.find((option) => option.name === name)?.value;
-  return typeof value === "string" ? value.trim() : undefined;
+function modalResponse(data) {
+	return interactionResponse(data, RESPONSE_MODAL);
 }
 
-export function optionAttachment(
-  interaction: DiscordInteraction,
-  name: string
-): DiscordAttachment | undefined {
-  const value = interaction.data?.options?.find((option) => option.name === name)?.value;
-  const attachmentId = typeof value === "string" ? value : undefined;
-  return attachmentId ? interaction.data?.resolved?.attachments?.[attachmentId] : undefined;
+function runInBackground(runtime, job) {
+	const promise = Promise.resolve().then(job);
+	if (runtime?.waitUntil) {
+		runtime.waitUntil(promise.catch((error) => console.error(error)));
+	} else {
+		promise.catch((error) => console.error(error));
+	}
+	return promise;
 }
 
-export function subcommand(interaction: DiscordInteraction) {
-  return interaction.data?.options?.find((option) => option.type === 1);
+function multipartPayload(payload, fileOrFiles) {
+	const boundary = `discord-boundary-${crypto.randomUUID()}`;
+	const files = Array.isArray(fileOrFiles) ? fileOrFiles : [fileOrFiles];
+	const parts = [
+		[
+			`--${boundary}`,
+			'Content-Disposition: form-data; name="payload_json"',
+			'Content-Type: application/json',
+			'',
+			JSON.stringify(payload),
+		].join('\r\n'),
+	];
+	files.forEach((file, index) => {
+		parts.push(
+			[
+				'',
+				`--${boundary}`,
+				`Content-Disposition: form-data; name="files[${index}]"; filename="${file.filename}"`,
+				`Content-Type: ${file.contentType}`,
+				'',
+				'',
+			].join('\r\n'),
+			file.body,
+		);
+	});
+	parts.push(`\r
+--${boundary}--\r
+`);
+	const body = new Blob(parts);
+	return {
+		body,
+		contentType: `multipart/form-data; boundary=${boundary}`,
+	};
 }
 
-export function subcommandOptionValue(
-  interaction: DiscordInteraction,
-  name: string
-) {
-  return optionValue(subcommand(interaction)?.options, name);
+function updateMessageResponse(data) {
+	return interactionResponse(data, RESPONSE_UPDATE_MESSAGE);
 }
 
-export function interactionUser(interaction: DiscordInteraction): DiscordUser | undefined {
-  return interaction.user || interaction.member?.user;
+function optionValue(options, name) {
+	const value = options?.find((option) => option.name === name)?.value;
+	return typeof value === 'string' ? value.trim() : undefined;
 }
 
-export function interactionUserId(interaction: DiscordInteraction) {
-  return interactionUser(interaction)?.id;
+function optionAttachment(interaction, name) {
+	const value = interaction.data?.options?.find((option) => option.name === name)?.value;
+	const attachmentId = typeof value === 'string' ? value : undefined;
+	return attachmentId ? interaction.data?.resolved?.attachments?.[attachmentId] : undefined;
 }
 
-export function interactionUserLabel(interaction: DiscordInteraction) {
-  const user = interactionUser(interaction);
-  return user?.global_name || user?.username || (user?.id ? `User ${user.id}` : "Unknown user");
+function interactionUser(interaction) {
+	return interaction.user || interaction.member?.user;
 }
 
-export function actionRow(components: DiscordComponent[]): DiscordComponent {
-  return {
-    type: COMPONENT_ACTION_ROW,
-    components,
-  };
+function interactionUserId(interaction) {
+	return interactionUser(interaction)?.id;
 }
 
-export function textInput(
-  customId: string,
-  style: number,
-  options: {
-    minLength?: number;
-    maxLength?: number;
-    required?: boolean;
-    value?: string;
-  } = {}
-): DiscordComponent {
-  return {
-    type: COMPONENT_TEXT_INPUT,
-    custom_id: customId,
-    style,
-    min_length: options.minLength,
-    max_length: options.maxLength,
-    required: options.required ?? true,
-    value: options.value,
-  };
+function actionRow(components) {
+	return {
+		type: COMPONENT_ACTION_ROW,
+		components,
+	};
 }
 
-export function labelComponent(
-  label: string,
-  component: DiscordComponent,
-  description?: string
-): DiscordComponent {
-  return {
-    type: COMPONENT_LABEL,
-    label,
-    description,
-    component,
-  };
+function textInput(customIdValue, style, options = {}) {
+	return {
+		type: COMPONENT_TEXT_INPUT,
+		custom_id: customIdValue,
+		style,
+		min_length: options.minLength,
+		max_length: options.maxLength,
+		required: options.required ?? true,
+		value: options.value,
+	};
 }
 
-function findComponentValue(
-  components: DiscordComponent[] | undefined,
-  customId: string
-): string | undefined {
-  for (const component of components || []) {
-    if (component.custom_id === customId && typeof component.value === "string") {
-      return component.value.trim();
-    }
-
-    const nested = findComponentValue(component.components, customId);
-    if (nested !== undefined) {
-      return nested;
-    }
-
-    const labeled = findComponentValue(
-      component.component ? [component.component] : undefined,
-      customId
-    );
-    if (labeled !== undefined) {
-      return labeled;
-    }
-  }
-
-  return undefined;
+function labelComponent(label, component, description) {
+	return {
+		type: COMPONENT_LABEL,
+		label,
+		description,
+		component,
+	};
 }
 
-export function modalValue(interaction: DiscordInteraction, customId: string) {
-  return findComponentValue(interaction.data?.components, customId);
+function findComponentValue(components, customIdValue) {
+	for (const component of components || []) {
+		if (component.custom_id === customIdValue && typeof component.value === 'string') {
+			return component.value.trim();
+		}
+		const nested = findComponentValue(component.components, customIdValue);
+		if (nested !== undefined) {
+			return nested;
+		}
+		const labeled = findComponentValue(component.component ? [component.component] : undefined, customIdValue);
+		if (labeled !== undefined) {
+			return labeled;
+		}
+	}
+	return undefined;
 }
 
-export function button(
-  customId: string,
-  label: string,
-  style = BUTTON_SECONDARY,
-  disabled = false
-): DiscordComponent {
-  return {
-    type: COMPONENT_BUTTON,
-    custom_id: customId,
-    label,
-    style,
-    disabled,
-  };
+function modalValue(interaction, customIdValue) {
+	return findComponentValue(interaction.data?.components, customIdValue);
 }
 
-export function stringSelect(
-  customId: string,
-  placeholder: string,
-  options: NonNullable<DiscordComponent["options"]>
-): DiscordComponent {
-  return {
-    type: COMPONENT_STRING_SELECT,
-    custom_id: customId,
-    placeholder,
-    min_values: 1,
-    max_values: 1,
-    options,
-  };
+function button(customIdValue, label, style = BUTTON_SECONDARY, disabled = false) {
+	return {
+		type: COMPONENT_BUTTON,
+		custom_id: customIdValue,
+		label,
+		style,
+		disabled,
+	};
 }
 
-export function pageMenu(
-  customId: string,
-  pageLabels: string[],
-  selectedIndex: number
-) {
-  return [
-    actionRow([
-      stringSelect(
-        customId,
-        "Pick a page",
-        pageLabels.map((label, index) => ({
-          label,
-          value: String(index),
-          default: index === selectedIndex,
-        }))
-      ),
-    ]),
-  ];
+function stringSelect(customIdValue, placeholder, options) {
+	return {
+		type: COMPONENT_STRING_SELECT,
+		custom_id: customIdValue,
+		placeholder,
+		min_values: 1,
+		max_values: 1,
+		options,
+	};
 }
 
-export function discordBotToken(env: Env) {
-  return env.DISCORD_BOT_TOKEN || env.DISCORD_TOKEN;
+function pageMenu(customIdValue, pageLabels, selectedIndex) {
+	return [
+		actionRow([
+			stringSelect(
+				customIdValue,
+				'Pick a page',
+				pageLabels.map((label, index) => ({
+					label,
+					value: String(index),
+					default: index === selectedIndex,
+				})),
+			),
+		]),
+	];
 }
 
-export async function discordApi<T>(
-  env: Env,
-  route: string,
-  init: RequestInit = {}
-) {
-  const botToken = discordBotToken(env);
-
-  if (!botToken) {
-    throw new Error("Missing DISCORD_BOT_TOKEN or DISCORD_TOKEN");
-  }
-
-  const response = await fetch(`https://discord.com/api/v10/${route}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bot ${botToken}`,
-      ...(init.headers || {}),
-    },
-  });
-
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : undefined;
-
-  if (!response.ok) {
-    throw new Error(`Discord API ${route} failed: ${response.status} ${text}`);
-  }
-
-  return data as T;
+function discordBotToken(env) {
+	return env.DISCORD_BOT_TOKEN || env.DISCORD_TOKEN;
 }
 
-export async function editOriginalInteractionResponse(
-  env: Env,
-  interactionToken: string | undefined,
-  data: InteractionResponseData,
-  file?: InteractionFile
-) {
-  if (!env.DISCORD_APPLICATION_ID || !interactionToken) {
-    throw new Error("Missing interaction webhook credentials");
-  }
-
-  const route = `webhooks/${env.DISCORD_APPLICATION_ID}/${interactionToken}/messages/@original`;
-  const init: RequestInit = {
-    method: "PATCH",
-  };
-
-  if (file) {
-    const payload = multipartPayload(data, file);
-    init.body = payload.body;
-    init.headers = {
-      "Content-Type": payload.contentType,
-    };
-  } else {
-    init.body = JSON.stringify(data);
-    init.headers = {
-      "Content-Type": "application/json",
-    };
-  }
-
-  const response = await fetch(`https://discord.com/api/v10/${route}`, init);
-  const text = await response.text();
-
-  if (!response.ok) {
-    throw new Error(`Discord webhook edit failed: ${response.status} ${text}`);
-  }
-
-  return text ? JSON.parse(text) : undefined;
+async function discordApi(env, route, init = {}) {
+	const botToken = discordBotToken(env);
+	if (!botToken) {
+		throw new Error('Missing DISCORD_BOT_TOKEN or DISCORD_TOKEN');
+	}
+	const response = await fetch(`https://discord.com/api/v10/${route}`, {
+		...init,
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bot ${botToken}`,
+			...(init.headers || {}),
+		},
+	});
+	const responseText = await response.text();
+	const data = responseText ? JSON.parse(responseText) : undefined;
+	if (!response.ok) {
+		throw new Error(`Discord API ${route} failed: ${response.status} ${responseText}`);
+	}
+	return data;
 }
 
-export async function createDm(env: Env, userId: string) {
-  return discordApi<{ id: string }>(env, "users/@me/channels", {
-    method: "POST",
-    body: JSON.stringify({ recipient_id: userId }),
-  });
+async function editOriginalInteractionResponse(env, interactionToken, data, file) {
+	if (!env.DISCORD_APPLICATION_ID || !interactionToken) {
+		throw new Error('Missing interaction webhook credentials');
+	}
+	const route = `webhooks/${env.DISCORD_APPLICATION_ID}/${interactionToken}/messages/@original`;
+	const usesComponentsV2 = Boolean((data.flags || 0) & IS_COMPONENTS_V2);
+	const init = {
+		method: 'PATCH',
+	};
+	if (file) {
+		const payload = multipartPayload(data, file);
+		init.body = payload.body;
+		init.headers = {
+			'Content-Type': payload.contentType,
+		};
+	} else {
+		init.body = JSON.stringify(data);
+		init.headers = {
+			'Content-Type': 'application/json',
+		};
+	}
+	const response = await fetch(`https://discord.com/api/v10/${route}${usesComponentsV2 ? '?with_components=true' : ''}`, init);
+	const responseText = await response.text();
+	if (!response.ok) {
+		throw new Error(`Discord webhook edit failed: ${response.status} ${responseText}`);
+	}
+	return responseText ? JSON.parse(responseText) : undefined;
 }
 
-export async function sendDiscordMessage(
-  env: Env,
-  channelId: string,
-  data: InteractionResponseData
-) {
-  return discordApi(env, `channels/${channelId}/messages`, {
-    method: "POST",
-    body: JSON.stringify({
-      ...data,
-      allowed_mentions: data.allowed_mentions || { parse: [] },
-    }),
-  });
+async function createDm(env, userId) {
+	return discordApi(env, 'users/@me/channels', {
+		method: 'POST',
+		body: JSON.stringify({ recipient_id: userId }),
+	});
 }
 
-export async function sendDiscordDm(
-  env: Env,
-  userId: string,
-  data: InteractionResponseData
-) {
-  const dm = await createDm(env, userId);
-  return sendDiscordMessage(env, dm.id, data);
+async function sendDiscordMessage(env, channelId, data) {
+	return discordApi(env, `channels/${channelId}/messages`, {
+		method: 'POST',
+		body: JSON.stringify({
+			...data,
+			allowed_mentions: data.allowed_mentions || { parse: [] },
+		}),
+	});
 }
+
+async function sendDiscordDm(env, userId, data) {
+	const dm = await createDm(env, userId);
+	return sendDiscordMessage(env, dm.id, data);
+}
+
+export {
+	APPLICATION_COMMAND,
+	APPLICATION_COMMAND_OPTION_ATTACHMENT,
+	APPLICATION_COMMAND_OPTION_STRING,
+	BUTTON_SECONDARY,
+	COMPONENT_CONTAINER,
+	COMPONENT_MEDIA_GALLERY,
+	COMPONENT_SECTION,
+	COMPONENT_SEPARATOR,
+	COMPONENT_TEXT_DISPLAY,
+	EPHEMERAL,
+	IS_COMPONENTS_V2,
+	MESSAGE_COMPONENT,
+	MODAL_SUBMIT,
+	PLAYER_OPTION,
+	TEXT_INPUT_PARAGRAPH,
+	TEXT_INPUT_SHORT,
+	USER_INSTALLABLE_CONTEXTS,
+	actionRow,
+	applyPrivateResponseOption,
+	button,
+	deferredInteractionResponse,
+	deferredUpdateMessageResponse,
+	discordBotToken,
+	editOriginalInteractionResponse,
+	interactionResponse,
+	interactionUserId,
+	jsonResponse,
+	labelComponent,
+	modalResponse,
+	modalValue,
+	optionAttachment,
+	optionValue,
+	pageMenu,
+	runInBackground,
+	sendDiscordDm,
+	sendDiscordMessage,
+	stringSelect,
+	textInput,
+	updateMessageResponse,
+	withEphemeralFlag,
+	withPrivateResponseOption,
+};

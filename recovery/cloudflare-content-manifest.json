@@ -1,0 +1,92 @@
+[
+  {
+    "name": "a2ca1bc6bb575ac125d9eaf338aa9a5af56bc377-JetBrainsMono_700Bold.ttf",
+    "bytes": 114828,
+    "headers": "Content-Disposition: form-data; name=\"./a2ca1bc6bb575ac125d9eaf338aa9a5af56bc377-JetBrainsMono_700Bold.ttf\"; filename=\"./a2ca1bc6bb575ac125d9eaf338aa9a5af56bc377-JetBrainsMono_700Bold.ttf\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "d90e8b6039f736b5796cebb22bfa12ce9ba8822c-cops-logo-short.png",
+    "bytes": 49238,
+    "headers": "Content-Disposition: form-data; name=\"./d90e8b6039f736b5796cebb22bfa12ce9ba8822c-cops-logo-short.png\"; filename=\"./d90e8b6039f736b5796cebb22bfa12ce9ba8822c-cops-logo-short.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "dd4dd8881e2df4e64203b5c0ae65e1648ab55207-index_bg.wasm",
+    "bytes": 2478606,
+    "headers": "Content-Disposition: form-data; name=\"./dd4dd8881e2df4e64203b5c0ae65e1648ab55207-index_bg.wasm\"; filename=\"./dd4dd8881e2df4e64203b5c0ae65e1648ab55207-index_bg.wasm\"\r\nContent-Type: application/wasm"
+  },
+  {
+    "name": "index.js",
+    "bytes": 270195,
+    "headers": "Content-Disposition: form-data; name=\"index.js\"; filename=\"index.js\"\r\nContent-Type: application/javascript+module"
+  },
+  {
+    "name": "898ddb2e35ec8bc699c86d0a5e26da10a32a2600-JetBrainsMono_400Regular.ttf",
+    "bytes": 114904,
+    "headers": "Content-Disposition: form-data; name=\"./898ddb2e35ec8bc699c86d0a5e26da10a32a2600-JetBrainsMono_400Regular.ttf\"; filename=\"./898ddb2e35ec8bc699c86d0a5e26da10a32a2600-JetBrainsMono_400Regular.ttf\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "c8be7122d1c00aceeea20336413059c23ee88244-rank-7-specops.png",
+    "bytes": 36690,
+    "headers": "Content-Disposition: form-data; name=\"./c8be7122d1c00aceeea20336413059c23ee88244-rank-7-specops.png\"; filename=\"./c8be7122d1c00aceeea20336413059c23ee88244-rank-7-specops.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "121350ab2849a7465e017b3b3b29fe05b72023b4-rank-5-diamond.png",
+    "bytes": 30007,
+    "headers": "Content-Disposition: form-data; name=\"./121350ab2849a7465e017b3b3b29fe05b72023b4-rank-5-diamond.png\"; filename=\"./121350ab2849a7465e017b3b3b29fe05b72023b4-rank-5-diamond.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "21a81157be823478cb2c99a2d1e25e551a43ef05-rank-4-platinum.png",
+    "bytes": 23770,
+    "headers": "Content-Disposition: form-data; name=\"./21a81157be823478cb2c99a2d1e25e551a43ef05-rank-4-platinum.png\"; filename=\"./21a81157be823478cb2c99a2d1e25e551a43ef05-rank-4-platinum.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "d04c49cb88ac6b90516f6a14900745fea69f3544-rank-6-master.png",
+    "bytes": 30661,
+    "headers": "Content-Disposition: form-data; name=\"./d04c49cb88ac6b90516f6a14900745fea69f3544-rank-6-master.png\"; filename=\"./d04c49cb88ac6b90516f6a14900745fea69f3544-rank-6-master.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "dff4bc107900eb6df24e3ad0ab6afa1d26dce4ca-cops-ak47.png",
+    "bytes": 23636,
+    "headers": "Content-Disposition: form-data; name=\"./dff4bc107900eb6df24e3ad0ab6afa1d26dce4ca-cops-ak47.png\"; filename=\"./dff4bc107900eb6df24e3ad0ab6afa1d26dce4ca-cops-ak47.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "0637d67230ac8e14b622979fa4c43b677c0a18cb-rank-8-elite.png",
+    "bytes": 36406,
+    "headers": "Content-Disposition: form-data; name=\"./0637d67230ac8e14b622979fa4c43b677c0a18cb-rank-8-elite.png\"; filename=\"./0637d67230ac8e14b622979fa4c43b677c0a18cb-rank-8-elite.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "11763279f334e6ec6b6745ff691853ebf98064ff-rank-3-gold.png",
+    "bytes": 29311,
+    "headers": "Content-Disposition: form-data; name=\"./11763279f334e6ec6b6745ff691853ebf98064ff-rank-3-gold.png\"; filename=\"./11763279f334e6ec6b6745ff691853ebf98064ff-rank-3-gold.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "41355f3604a3daba9106c6165ab220c8102a9e70-rank-1-bronze.png",
+    "bytes": 27472,
+    "headers": "Content-Disposition: form-data; name=\"./41355f3604a3daba9106c6165ab220c8102a9e70-rank-1-bronze.png\"; filename=\"./41355f3604a3daba9106c6165ab220c8102a9e70-rank-1-bronze.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "aa8ae2bed8739f6cf07d079ade4d1fe342a05e13-cops-coalition.png",
+    "bytes": 364369,
+    "headers": "Content-Disposition: form-data; name=\"./aa8ae2bed8739f6cf07d079ade4d1fe342a05e13-cops-coalition.png\"; filename=\"./aa8ae2bed8739f6cf07d079ade4d1fe342a05e13-cops-coalition.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "accb2aa94f3ca1decf2cb1770f27953cc4dac509-cops-breach.png",
+    "bytes": 376853,
+    "headers": "Content-Disposition: form-data; name=\"./accb2aa94f3ca1decf2cb1770f27953cc4dac509-cops-breach.png\"; filename=\"./accb2aa94f3ca1decf2cb1770f27953cc4dac509-cops-breach.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "87ce93d7c6569fb60362e2b7c3114a510d4cb16d-rank-0-unranked.png",
+    "bytes": 18597,
+    "headers": "Content-Disposition: form-data; name=\"./87ce93d7c6569fb60362e2b7c3114a510d4cb16d-rank-0-unranked.png\"; filename=\"./87ce93d7c6569fb60362e2b7c3114a510d4cb16d-rank-0-unranked.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "88f4ffbf3531d1c426e945904ce9f1bf748490c6-rank-2-silver.png",
+    "bytes": 28094,
+    "headers": "Content-Disposition: form-data; name=\"./88f4ffbf3531d1c426e945904ce9f1bf748490c6-rank-2-silver.png\"; filename=\"./88f4ffbf3531d1c426e945904ce9f1bf748490c6-rank-2-silver.png\"\r\nContent-Type: application/octet-stream"
+  },
+  {
+    "name": "9c89dc55b06b92a57c2c927a3b8ebe05bd656ed4-cops-hero.jpg",
+    "bytes": 654775,
+    "headers": "Content-Disposition: form-data; name=\"./9c89dc55b06b92a57c2c927a3b8ebe05bd656ed4-cops-hero.jpg\"; filename=\"./9c89dc55b06b92a57c2c927a3b8ebe05bd656ed4-cops-hero.jpg\"\r\nContent-Type: application/octet-stream"
+  }
+]

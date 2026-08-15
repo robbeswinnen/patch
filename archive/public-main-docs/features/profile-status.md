@@ -28,15 +28,15 @@ If public player data says an account has an active in-game ban, the profile car
 
 ## What each label means
 
-| Label | Tiny explanation | Where it appears |
-| --- | --- | --- |
-| Secure | Patch has no accepted community report or curated tag for the player | `/stats`, `/profile` |
-| Community report | Staff accepted a proof-backed report | `/stats`, `/profile` |
-| Verified | Known and trusted by the Patch team | `/stats`, `/profile` |
-| Developer | Critical Ops developer | `/stats`, `/profile` |
-| Creator | Content creator | `/stats`, `/profile` |
-| Competitive | Competitive player | `/stats`, `/profile` |
-| Organizer | Hosts official tournaments or events | `/stats`, `/profile` |
+| Label            | Tiny explanation                                                     | Where it appears     |
+| ---------------- | -------------------------------------------------------------------- | -------------------- |
+| Secure           | Patch has no accepted community report or curated tag for the player | `/stats`, `/profile` |
+| Community report | Staff accepted a proof-backed report                                 | `/stats`, `/profile` |
+| Verified         | Known and trusted by the Patch team                                  | `/stats`, `/profile` |
+| Developer        | Critical Ops developer                                               | `/stats`, `/profile` |
+| Creator          | Content creator                                                      | `/stats`, `/profile` |
+| Competitive      | Competitive player                                                   | `/stats`, `/profile` |
+| Organizer        | Hosts official tournaments or events                                 | `/stats`, `/profile` |
 
 !!!question Can I get a tag?
 Maybe. Join the support server, open a ticket, and bring context. Patch likes clean receipts.

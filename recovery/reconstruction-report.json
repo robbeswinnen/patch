@@ -1,0 +1,184 @@
+[
+  {
+    "module": "src/index.ts",
+    "lines": 128,
+    "definitions": 4,
+    "imports": 28,
+    "exports": 1
+  },
+  {
+    "module": "src/lib/discord.ts",
+    "lines": 371,
+    "definitions": 64,
+    "imports": 0,
+    "exports": 41
+  },
+  {
+    "module": "src/lib/cops.ts",
+    "lines": 686,
+    "definitions": 74,
+    "imports": 0,
+    "exports": 34
+  },
+  {
+    "module": "src/lib/brand.ts",
+    "lines": 14,
+    "definitions": 6,
+    "imports": 0,
+    "exports": 3
+  },
+  {
+    "module": "src/lib/player-tags.ts",
+    "lines": 110,
+    "definitions": 9,
+    "imports": 0,
+    "exports": 5
+  },
+  {
+    "module": "src/lib/storage.ts",
+    "lines": 629,
+    "definitions": 64,
+    "imports": 7,
+    "exports": 39
+  },
+  {
+    "module": "src/lib/tracking.ts",
+    "lines": 217,
+    "definitions": 12,
+    "imports": 12,
+    "exports": 7
+  },
+  {
+    "module": "src/lib/presentation.ts",
+    "lines": 54,
+    "definitions": 5,
+    "imports": 0,
+    "exports": 4
+  },
+  {
+    "module": "src/lib/components-v2.ts",
+    "lines": 152,
+    "definitions": 25,
+    "imports": 11,
+    "exports": 23
+  },
+  {
+    "module": "src/lib/app-ui.ts",
+    "lines": 573,
+    "definitions": 28,
+    "imports": 42,
+    "exports": 10
+  },
+  {
+    "module": "src/lib/card-image.ts",
+    "lines": 527,
+    "definitions": 42,
+    "imports": 12,
+    "exports": 2
+  },
+  {
+    "module": "src/lib/reporting.ts",
+    "lines": 110,
+    "definitions": 7,
+    "imports": 9,
+    "exports": 3
+  },
+  {
+    "module": "src/lib/ban-watcher.ts",
+    "lines": 156,
+    "definitions": 8,
+    "imports": 13,
+    "exports": 2
+  },
+  {
+    "module": "src/lib/onboarding.ts",
+    "lines": 47,
+    "definitions": 4,
+    "imports": 11,
+    "exports": 1
+  },
+  {
+    "module": "src/lib/homepage.ts",
+    "lines": 1068,
+    "definitions": 9,
+    "imports": 1,
+    "exports": 1
+  },
+  {
+    "module": "src/commands/help.ts",
+    "lines": 30,
+    "definitions": 5,
+    "imports": 6,
+    "exports": 2
+  },
+  {
+    "module": "src/lib/profile-card-cache.ts",
+    "lines": 235,
+    "definitions": 26,
+    "imports": 6,
+    "exports": 2
+  },
+  {
+    "module": "src/lib/lookup-counts.ts",
+    "lines": 16,
+    "definitions": 2,
+    "imports": 3,
+    "exports": 2
+  },
+  {
+    "module": "src/lib/profile-card-response.ts",
+    "lines": 29,
+    "definitions": 3,
+    "imports": 3,
+    "exports": 1
+  },
+  {
+    "module": "src/commands/report.ts",
+    "lines": 619,
+    "definitions": 23,
+    "imports": 66,
+    "exports": 6
+  },
+  {
+    "module": "src/commands/profile.ts",
+    "lines": 211,
+    "definitions": 8,
+    "imports": 31,
+    "exports": 3
+  },
+  {
+    "module": "src/commands/compare.ts",
+    "lines": 210,
+    "definitions": 9,
+    "imports": 32,
+    "exports": 2
+  },
+  {
+    "module": "src/commands/dev.ts",
+    "lines": 199,
+    "definitions": 8,
+    "imports": 21,
+    "exports": 1
+  },
+  {
+    "module": "src/commands/stats.ts",
+    "lines": 288,
+    "definitions": 12,
+    "imports": 50,
+    "exports": 4
+  },
+  {
+    "module": "src/commands/track.ts",
+    "lines": 144,
+    "definitions": 8,
+    "imports": 24,
+    "exports": 3
+  },
+  {
+    "module": "src/commands/index.ts",
+    "lines": 6,
+    "definitions": 4,
+    "imports": 8,
+    "exports": 2
+  }
+]

@@ -29,7 +29,7 @@ links:
     title: Open the Patch support server
 
 footer:
-  copyright: "&copy; {{ year }} Patch. Clean player reads, tiny useful buttons."
+  copyright: '&copy; {{ year }} Patch. Clean player reads, tiny useful buttons.'
   links:
     - text: Support Server
       link: https://discord.gg/QW7CZczhT4
@@ -41,8 +41,8 @@ footer:
 search:
   preload: true
   hotkeys:
-    - "/"
-    - "k"
+    - '/'
+    - 'k'
   maxResults: 24
   minChars: 2
   placeholder: Search Patch docs

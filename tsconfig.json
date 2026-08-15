@@ -16,11 +16,6 @@
 		/* Enable importing .json files */
 		"resolveJsonModule": true,
 
-		/* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
-		"allowJs": true,
-		/* Enable error reporting in type-checked JavaScript files. */
-		"checkJs": false,
-
 		/* Disable emitting files from a compilation. */
 		"noEmit": true,
 
@@ -31,15 +26,12 @@
 		/* Ensure that casing is correct in imports. */
 		"forceConsistentCasingInFileNames": true,
 
-		/* Enable all strict type-checking options. */
+		/* Recovered modules opt out individually until their erased annotations are restored. */
 		"strict": true,
 
 		/* Skip type checking all .d.ts files. */
 		"skipLibCheck": true,
-		"types": [
-			"./worker-configuration.d.ts",
-			"node"
-		]
+		"types": ["./worker-configuration.d.ts", "node"]
 	},
 	"exclude": ["test"],
 	"include": ["worker-configuration.d.ts", "src/**/*.ts"]

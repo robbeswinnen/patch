@@ -1,150 +1,240 @@
-import type { Env, InteractionResponseData } from "../types";
-import {
-  createDm,
-  discordBotToken,
-  sendDiscordMessage,
-} from "./discord";
-import {
-  EMBED_COLOR,
-  fetchProfileByPlayerOption,
-  formatInteger,
-  formatOptionalInteger,
-} from "./cops";
-import { embedImage, quoteList } from "./presentation";
-import {
-  listTrackers,
-  putTracker,
-  snapshotDelta,
-  snapshotProfile,
-} from "./storage";
-import { weeklyUnsubscribeComponents } from "../commands/track";
+// @ts-nocheck
+// Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
+import { displayName, fetchProfileByPlayerOption, formatInteger, formatLastOnlineValue, formatOptionalInteger, playerId } from './cops';
+import { getTracker, listTrackers, putTracker, snapshotDelta, snapshotProfile, trackedPlayerFromProfile } from './storage';
 
-function signed(value: number | undefined) {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    return "N/A";
-  }
-
-  if (value > 0) {
-    return `+${formatInteger(value)}`;
-  }
-
-  return formatInteger(value);
+const TRACKER_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1e3;
+const MAX_TRACKERS_PER_CRON = 20;
+function signed(value) {
+	if (typeof value !== 'number' || !Number.isFinite(value)) {
+		return 'N/A';
+	}
+	if (value > 0) {
+		return `+${formatInteger(value)}`;
+	}
+	return formatInteger(value);
 }
 
-export async function sendWeeklyRankedUpdates(env: Env) {
-  if (!env.USER_PREFERENCES || !discordBotToken(env)) {
-    console.warn("Skipping weekly tracking: storage or bot token missing.");
-    return;
-  }
-
-  const trackers = await listTrackers(env);
-
-  for (const record of trackers) {
-    if (record.players.length === 0) {
-      continue;
-    }
-
-    const fields: NonNullable<InteractionResponseData["embeds"]>[number]["fields"] = [];
-
-    for (const tracked of record.players) {
-      try {
-        const profile = await fetchProfileByPlayerOption(tracked.lookup);
-        if (!profile) {
-          fields.push({
-            name: tracked.label,
-            value: quoteList(["Could not refresh this player from public data this week."]),
-            inline: false,
-          });
-          continue;
-        }
-
-        const next = snapshotProfile(profile);
-        const delta = snapshotDelta(tracked.lastSnapshot, next);
-        fields.push({
-          name: tracked.label,
-          value: quoteList([
-            `Kills: ${formatInteger(next.kills)} (${signed(delta.kills)})`,
-            `Deaths: ${formatInteger(next.deaths)} (${signed(delta.deaths)})`,
-            `Rating: ${formatOptionalInteger(next.mmr)} MMR (${signed(delta.mmr)})`,
-            `Rank: ${next.rank}${
-              delta.rankChanged ? ` (was ${tracked.lastSnapshot?.rank})` : ""
-            }`,
-            `Level: ${formatOptionalInteger(next.level)} (${signed(delta.level)})`,
-          ]),
-          inline: false,
-        });
-
-        tracked.lastSnapshot = next;
-        tracked.label = profile.basicInfo?.name || tracked.label;
-        tracked.lookup = profile.basicInfo?.userID ? String(profile.basicInfo.userID) : tracked.lookup;
-      } catch (error) {
-        console.error(error);
-        fields.push({
-          name: tracked.label,
-          value: quoteList(["Refresh failed this week. Keeping the old snapshot for now."]),
-          inline: false,
-        });
-      }
-    }
-
-    await putTracker(env, record);
-
-    try {
-      const dm = await createDm(env, record.userId);
-      await sendDiscordMessage(env, dm.id, {
-        embeds: [
-          {
-            title: "Weekly Ranked Recap",
-            description: quoteList([
-              "Ranked-only changes since the last snapshot.",
-              "Small moves count; the weekly view keeps them visible.",
-            ]),
-            color: EMBED_COLOR,
-            image: embedImage("track"),
-            fields: fields.slice(0, 25),
-            timestamp: new Date().toISOString(),
-          },
-        ],
-        components: weeklyUnsubscribeComponents(record.userId, record),
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+function movementScore(delta) {
+	return (
+		Math.abs(delta.mmr || 0) * 5 +
+		Math.abs(delta.kills || 0) +
+		Math.abs(delta.deaths || 0) +
+		Math.abs(delta.level || 0) * 10 +
+		(delta.rankChanged ? 100 : 0)
+	);
 }
 
-function brusselsDateParts(now: Date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Brussels",
-    weekday: "short",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
-  const value = (type: string) => parts.find((part) => part.type === type)?.value;
-
-  return {
-    weekday: value("weekday"),
-    hour: value("hour"),
-    date: `${value("year")}-${value("month")}-${value("day")}`,
-  };
+function isFresh(isoDate, now) {
+	if (!isoDate) {
+		return false;
+	}
+	const parsedTimestamp = Date.parse(isoDate);
+	return Number.isFinite(parsedTimestamp) && now.getTime() - parsedTimestamp < TRACKER_REFRESH_INTERVAL_MS;
 }
 
-export async function runScheduledRankedUpdates(env: Env, now = new Date()) {
-  const parts = brusselsDateParts(now);
-  if (parts.weekday !== "Sun" || parts.hour !== "18") {
-    return;
-  }
-
-  const key = `track:last-weekly-report:${parts.date}`;
-  if (env.USER_PREFERENCES && (await env.USER_PREFERENCES.get(key))) {
-    return;
-  }
-
-  await env.USER_PREFERENCES?.put(key, "sent", {
-    expirationTtl: 8 * 24 * 60 * 60,
-  });
-  await sendWeeklyRankedUpdates(env);
+function trackingChanges(record) {
+	return record.players.map((player) => {
+		const latest = player.latestSnapshot || player.lastSnapshot;
+		const baseline = player.baselineSnapshot || player.lastSnapshot;
+		const delta = latest
+			? snapshotDelta(baseline, latest)
+			: {
+					kills: undefined,
+					deaths: undefined,
+					mmr: undefined,
+					level: undefined,
+					rankChanged: false,
+				};
+		const score = movementScore(delta);
+		return {
+			player,
+			baseline,
+			latest,
+			delta,
+			changed: score > 0,
+			movementScore: score,
+		};
+	});
 }
+
+function trackingChangeLines(change) {
+	const latest = change.latest;
+	if (!latest) {
+		return ['No snapshot has been captured for this player yet.'];
+	}
+	return [
+		`Rank: **${latest.rank}**${change.delta.rankChanged && change.baseline?.rank ? ` from ${change.baseline.rank}` : ''}`,
+		latest.peakRank ? `Peak: **${latest.peakRank}**` : undefined,
+		latest.lastOnlineAt ? `Last online: **${formatLastOnlineValue(latest.lastOnlineAt)}**` : undefined,
+		`MMR: **${formatOptionalInteger(latest.mmr)}** (${signed(change.delta.mmr)})`,
+		`Kills: **${formatInteger(latest.kills)}** (${signed(change.delta.kills)})`,
+		`Deaths: **${formatInteger(latest.deaths)}** (${signed(change.delta.deaths)})`,
+		`Level: **${formatOptionalInteger(latest.level)}** (${signed(change.delta.level)})`,
+	].filter((line) => Boolean(line));
+}
+
+function acceptTrackerBaselines(record, now = /* @__PURE__ */ new Date()) {
+	const viewedAt = now.toISOString();
+	for (const player of record.players) {
+		const latest = player.latestSnapshot || player.lastSnapshot;
+		if (!latest) {
+			continue;
+		}
+		player.baselineSnapshot = latest;
+		player.lastViewedAt = viewedAt;
+	}
+	record.lastViewedAt = viewedAt;
+	return record;
+}
+
+async function refreshTrackerRecord(env, record, options = {}) {
+	const now = options.now || /* @__PURE__ */ new Date();
+	let refreshed = 0;
+	for (const player of record.players) {
+		if (!options.force && isFresh(player.lastRefreshedAt || player.latestSnapshot?.capturedAt, now)) {
+			continue;
+		}
+		if (typeof options.maxPlayers === 'number' && refreshed >= options.maxPlayers) {
+			break;
+		}
+		try {
+			const profile = await fetchProfileByPlayerOption(player.lookup);
+			if (!profile) {
+				continue;
+			}
+			const next = snapshotProfile(profile);
+			player.latestSnapshot = next;
+			player.lastSnapshot = next;
+			player.lastRefreshedAt = next.capturedAt;
+			player.label = displayName(profile);
+			player.playerId = playerId(profile) || player.playerId;
+			player.lookup = player.playerId || player.lookup;
+			refreshed += 1;
+		} catch (error) {
+			console.error('Failed to refresh tracked player', {
+				userId: record.userId,
+				player: player.lookup,
+				error,
+			});
+		}
+	}
+	if (refreshed > 0) {
+		record.lastRefreshedAt = now.toISOString();
+	}
+	return {
+		record,
+		refreshed,
+	};
+}
+
+async function toggleTrackedProfile(env, userId, lookup) {
+	const profile = await fetchProfileByPlayerOption(lookup);
+	if (!profile) {
+		return {
+			ok: false,
+			reason: 'not_found',
+		};
+	}
+	const record = await getTracker(env, userId);
+	const tracked = trackedPlayerFromProfile(lookup, profile);
+	const existing = record.players.findIndex((player) => player.key === tracked.key);
+	const removed = existing >= 0;
+	if (removed) {
+		record.players.splice(existing, 1);
+	} else {
+		if (record.players.length >= 25) {
+			return {
+				ok: false,
+				reason: 'full',
+			};
+		}
+		record.players.push(tracked);
+	}
+	await putTracker(env, record);
+	return {
+		ok: true,
+		removed,
+		profile,
+		record,
+	};
+}
+
+async function addTrackedProfile(env, userId, lookup) {
+	const profile = await fetchProfileByPlayerOption(lookup);
+	if (!profile) {
+		return {
+			ok: false,
+			reason: 'not_found',
+		};
+	}
+	const record = await getTracker(env, userId);
+	const tracked = trackedPlayerFromProfile(lookup, profile);
+	const existing = record.players.findIndex((player) => player.key === tracked.key);
+	if (existing >= 0) {
+		record.players[existing] = {
+			...record.players[existing],
+			label: tracked.label,
+			lookup: tracked.lookup,
+			playerId: tracked.playerId,
+			latestSnapshot: tracked.latestSnapshot,
+			lastSnapshot: tracked.lastSnapshot,
+			lastRefreshedAt: tracked.lastRefreshedAt,
+		};
+		await putTracker(env, record);
+		return {
+			ok: true,
+			alreadyTracked: true,
+			profile,
+			record,
+		};
+	}
+	if (record.players.length >= 25) {
+		return {
+			ok: false,
+			reason: 'full',
+		};
+	}
+	record.players.push(tracked);
+	await putTracker(env, record);
+	return {
+		ok: true,
+		alreadyTracked: false,
+		profile,
+		record,
+	};
+}
+
+async function runScheduledRankedUpdates(env, now = /* @__PURE__ */ new Date()) {
+	if (!env.USER_PREFERENCES) {
+		return;
+	}
+	const trackers = await listTrackers(env);
+	let checked = 0;
+	for (const record of trackers) {
+		if (checked >= MAX_TRACKERS_PER_CRON) {
+			break;
+		}
+		if (record.players.length === 0 || isFresh(record.lastRefreshedAt, now)) {
+			continue;
+		}
+		checked += 1;
+		const refreshed = await refreshTrackerRecord(env, record, {
+			now,
+			maxPlayers: 10,
+		});
+		if (refreshed.refreshed > 0) {
+			await putTracker(env, refreshed.record);
+		}
+	}
+}
+
+export {
+	acceptTrackerBaselines,
+	addTrackedProfile,
+	refreshTrackerRecord,
+	runScheduledRankedUpdates,
+	toggleTrackedProfile,
+	trackingChangeLines,
+	trackingChanges,
+};

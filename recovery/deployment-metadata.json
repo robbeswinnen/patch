@@ -1,0 +1,32 @@
+{
+  "worker": "discord-bot",
+  "versionId": "7a2bcac9-7917-42cf-b269-af683dca6e37",
+  "versionNumber": 115,
+  "createdOn": "2026-06-12T19:57:28.131764Z",
+  "source": "dash",
+  "url": "https://7a2bcac9-discord-bot.robbeswinnen.workers.dev",
+  "mainModule": "index.js",
+  "compatibilityDate": "2026-05-13",
+  "compatibilityFlags": ["nodejs_compat"],
+  "cron": "0 * * * *",
+  "bindings": {
+    "plainText": [
+      "DEVELOPER_DISCORD_USER_IDS",
+      "SUPPORT_REPORT_CHANNEL_ID",
+      "SUPPORT_SERVER_ID"
+    ],
+    "secrets": [
+      "DISCORD_APPLICATION_ID",
+      "DISCORD_PUBLIC_KEY",
+      "DISCORD_TOKEN"
+    ],
+    "kv": {
+      "name": "USER_PREFERENCES",
+      "namespaceId": "f5a530cf25f94e49b6635d0e4ba07fe4"
+    }
+  },
+  "notes": [
+    "Secret values and KV contents were not downloaded.",
+    "SUPPORT_SERVER_ID is present in deployment metadata but unused by the recovered source."
+  ]
+}

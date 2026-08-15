@@ -20,13 +20,13 @@ Patch saves a snapshot, then sends you a private ranked recap every Sunday at 18
 
 ## What the recap tracks
 
-| Field | What Patch compares |
-| --- | --- |
-| Kills | New total minus old total |
-| Deaths | New total minus old total |
-| Rating/MMR | New value minus old value |
-| Rank | Whether the rank name changed |
-| Level | New level minus old level |
+| Field      | What Patch compares           |
+| ---------- | ----------------------------- |
+| Kills      | New total minus old total     |
+| Deaths     | New total minus old total     |
+| Rating/MMR | New value minus old value     |
+| Rank       | Whether the rank name changed |
+| Level      | New level minus old level     |
 
 ## Watchlist rules
 

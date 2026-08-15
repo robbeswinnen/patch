@@ -1,43 +1,19 @@
-import type { CommandModule } from "../types";
-import { helpCommand } from "./help";
-import { profileCommand } from "./profile";
-import { clanCommand, handleClanPage } from "./clan";
-import { compareCommand } from "./compare";
-import { devCommand } from "./dev";
-import {
-  reportCommand,
-  handleReportReview,
-  handleReportReviewModal,
-  handleReportSubmitModal,
-} from "./report";
-import { statsCommand, handleStatsPage } from "./stats";
-import { tagsCommand } from "./tags";
-import { trackCommand, handleTrackUnsubscribe } from "./track";
+// @ts-nocheck
+// Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
+import { compareCommand } from './compare';
+import { devCommand } from './dev';
+import { helpCommand } from './help';
+import { profileCommand } from './profile';
+import { reportCommand } from './report';
+import { statsCommand } from './stats';
+import { trackCommand } from './track';
+import { withPrivateResponseOption } from '../lib/discord';
 
-export const PUBLIC_COMMANDS: CommandModule[] = [
-  helpCommand,
-  statsCommand,
-  profileCommand,
-  compareCommand,
-  clanCommand,
-  trackCommand,
-  tagsCommand,
-  reportCommand,
-];
+const PUBLIC_COMMANDS = [profileCommand, reportCommand, statsCommand, trackCommand, helpCommand, compareCommand];
+const COMMANDS = [...PUBLIC_COMMANDS, devCommand];
+const PRIVATE_OPTION_COMMANDS = /* @__PURE__ */ new Set(['profile', 'stats', 'help', 'compare']);
+const DISCORD_COMMANDS = [...PUBLIC_COMMANDS, devCommand].map((command) => {
+	return PRIVATE_OPTION_COMMANDS.has(command.definition.name) ? withPrivateResponseOption(command.definition) : command.definition;
+});
 
-export const COMMANDS: CommandModule[] = [...PUBLIC_COMMANDS, devCommand];
-
-export const DISCORD_COMMANDS = PUBLIC_COMMANDS.map((command) => command.definition);
-
-export {
-  handleClanPage,
-  handleReportReview,
-  handleReportReviewModal,
-  handleReportSubmitModal,
-  handleStatsPage,
-  handleTrackUnsubscribe,
-};
-
-export { buildStatsEmbeds } from "./stats";
-export { buildCompareEmbed } from "./compare";
-export { buildClanEmbeds } from "./clan";
+export { COMMANDS, DISCORD_COMMANDS };

@@ -1,20 +1,24 @@
-import type { Env } from "../types";
+// @ts-nocheck
+// Type annotations were erased by the deployed bundle; see docs/RECOVERY_NOTES.md.
 
-export const DEFAULT_SUPPORT_SERVER_URL = "https://discord.gg/QW7CZczhT4";
-export const DEVELOPER_HANDLES = ["@xepp.\_.", "@reckiscool", "@yoshika.\_."] as const;
-export const DEVELOPER_CREDIT = `MADE BY ${DEVELOPER_HANDLES.join(" / ")}`;
-
-export function supportServerUrl(env?: Pick<Env, "SUPPORT_SERVER_URL">) {
-  return env?.SUPPORT_SERVER_URL?.trim() || DEFAULT_SUPPORT_SERVER_URL;
+// Kept byte-for-byte equivalent to the recovered deployment for bot behavior parity.
+// The website uses its own safe fallback in src/site/urls.ts.
+const DEFAULT_SUPPORT_SERVER_URL = 'https://discord.gg/QW7CZczhT4';
+const DEVELOPER_HANDLES = ['@xepp._.'];
+const DEVELOPER_CREDIT = `MADE BY ${DEVELOPER_HANDLES.join(' / ')}`;
+function supportServerUrl(env) {
+	return env?.SUPPORT_SERVER_URL?.trim() || DEFAULT_SUPPORT_SERVER_URL;
 }
 
-export function compactUrlLabel(url: string) {
-  return url
-    .replace(/^https?:\/\//i, "")
-    .replace(/^www\./i, "")
-    .replace(/\/+$/g, "");
+function compactUrlLabel(url) {
+	return url
+		.replace(/^https?:\/\//i, '')
+		.replace(/^www\./i, '')
+		.replace(/\/+$/g, '');
 }
 
-export function supportServerLabel(env?: Pick<Env, "SUPPORT_SERVER_URL">) {
-  return compactUrlLabel(supportServerUrl(env));
+function supportServerLabel(env) {
+	return compactUrlLabel(supportServerUrl(env));
 }
+
+export { DEVELOPER_CREDIT, supportServerLabel, supportServerUrl };
